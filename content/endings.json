@@ -1,0 +1,44 @@
+{
+  "success": {
+    "title": "TOUCHDOWN",
+    "fx": "landing",
+    "lines": [
+      "Dust settles. Silence. Then: the Moon, under your boots.",
+      "You made it. One of the last humans alive, and one of the first to call the Moon home."
+    ],
+    "kept": "Your {item} is the first thing from Earth to touch the lunar surface.",
+    "consumed": "Your {item} didn't make it. It's the reason you did."
+  },
+  "rescue": {
+    "title": "ADRIFT",
+    "fx": "drift",
+    "lines": [
+      "{cause} We're drifting, a quiet spark between the Earth and the Moon.",
+      "Lunar Base picked up our beacon. Rescue is coming. Probably."
+    ],
+    "kept": "You hold your {item} and watch the Moon, so close.",
+    "consumed": "The pieces of your {item} are still keeping you alive."
+  },
+  "failure": {
+    "title": "LOST",
+    "fx": "crash",
+    "lines": [
+      "{cause}",
+      "The last rocket goes dark somewhere short of the Moon."
+    ],
+    "kept": "Somewhere out there, your {item} drifts on forever.",
+    "consumed": "You gave up your {item} for this ship. It almost worked."
+  },
+  "causes": {
+    "hull": "The hull gives way.",
+    "oxygen": "The last of the air runs out.",
+    "fuel": "The tanks are dry."
+  },
+  "score": {
+    "success": 200,
+    "rescue": 80,
+    "failure": 0,
+    "perCombo": 40,
+    "itemKept": 60
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "combos": [
+    {
+      "id": "plasma_ram",
+      "name": "Plasma Ram",
+      "icon": "☄️",
+      "requires": ["upgrade:deflector_shield", "tag:weapon|tag:power"],
+      "effects": [
+        { "type": "refill", "resource": "hull", "amount": 15 },
+        { "type": "reduce", "resource": "hull", "pct": 20 }
+      ],
+      "text": "The shield fuses with your firepower into a plasma ram. +15 hull, hull damage -20%."
+    },
+    {
+      "id": "closed_loop",
+      "name": "Closed Loop",
+      "icon": "🔁",
+      "requires": ["upgrade:co2_scrubber", "tag:storage"],
+      "effects": [
+        { "type": "refill", "resource": "oxygen", "amount": 20 },
+        { "type": "reduce", "resource": "oxygen", "pct": 15 }
+      ],
+      "text": "The scrubber plugs into your {mod}: a sealed air loop. +20 oxygen, oxygen costs -15%."
+    },
+    {
+      "id": "gravity_slingshot",
+      "name": "Gravity Slingshot",
+      "icon": "🌒",
+      "requires": ["upgrade:efficient_nozzle", "tag:signal"],
+      "effects": [
+        { "type": "refill", "resource": "fuel", "amount": 20 },
+        { "type": "reduce", "resource": "fuel", "pct": 15 }
+      ],
+      "text": "Your {mod} plots a slingshot around the Moon's gravity. +20 fuel, fuel costs -15%."
+    },
+    {
+      "id": "crash_couch",
+      "name": "Crash Couch",
+      "icon": "🛋️",
+      "requires": ["upgrade:reinforced_plating", "tag:cushion|tag:repair"],
+      "effects": [
+        { "type": "refill", "resource": "hull", "amount": 15 },
+        { "type": "reduce", "resource": "hull", "pct": 15 }
+      ],
+      "text": "The plating locks onto your {mod}. You just built a crash couch. +15 hull, hull damage -15%."
+    }
+  ]
+}

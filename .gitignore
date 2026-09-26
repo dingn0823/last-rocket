@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+data/
+*.log
+*.jpg
+*.jpeg
+*.png
+*.heic
+!web/assets/**
+*.heif
+*.webp
+*.gif
+.claude/settings.local.json

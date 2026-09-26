@@ -1,0 +1,423 @@
+{
+  "start": { "fuel": 45, "oxygen": 45, "hull": 45 },
+  "max": 100,
+  "lifeSupportPerStage": 6,
+  "interludeChance": 0.5,
+  "stages": [
+    {
+      "n": 1,
+      "name": "Liftoff",
+      "mode": "numbered",
+      "pickAfter": 0,
+      "fx": "launch",
+      "pool": [
+        {
+          "id": "launch",
+          "title": "Liftoff",
+          "scene": "🚀",
+          "intro": [
+            "T-minus 10. The launch tower is buckling and the ground is splitting open.",
+            "We go now or we don't go at all."
+          ],
+          "actions": [
+            {
+              "id": "full_burn",
+              "label": "Full throttle — punch straight out of the atmosphere",
+              "hint": "go full throttle",
+              "keywords": ["full", "throttle", "max", "burn", "fast"],
+              "outcome": { "delta": { "fuel": -14 }, "text": "You slam the throttle. The ship screams skyward, clean and fast." }
+            },
+            {
+              "id": "gentle_climb",
+              "label": "Easy climb — save fuel, risk the falling debris",
+              "hint": "take an easy climb",
+              "keywords": ["easy", "gentle", "slow", "climb", "save"],
+              "chance": {
+                "p": 0.5,
+                "success": { "delta": { "fuel": -6, "hull": -6 }, "text": "Falling concrete just misses us. Nice." },
+                "fail": { "delta": { "fuel": -6, "hull": -18 }, "text": "Chunks of the tower rake the hull on the way up." }
+              }
+            },
+            {
+              "id": "brace",
+              "label": "Wedge your {mod} behind the seat and climb gently",
+              "hint": "brace with your {mod}",
+              "requires": ["tag:cushion"],
+              "keywords": ["brace", "wedge", "cushion", "pad"],
+              "outcome": { "delta": { "fuel": -7, "hull": -3 }, "text": "Your {mod} soaks up the worst of the shaking." }
+            },
+            {
+              "id": "overclock",
+              "label": "Overclock the engines with your {mod}",
+              "hint": "overclock with your {mod}",
+              "requires": ["tag:power"],
+              "keywords": ["overclock", "battery", "boost"],
+              "outcome": { "delta": { "fuel": -5 }, "text": "The battery surges. We lift off like a firework." }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 2,
+      "name": "Debris Belt",
+      "mode": "free",
+      "pickAfter": 1,
+      "interludeAfter": true,
+      "opening": "Comms fully online. From here on, just tell me what to do.",
+      "pool": [
+        {
+          "id": "debris_field",
+          "title": "Debris Field",
+          "scene": "🛰️",
+          "intro": ["Dead satellites are tumbling straight at us. Hundreds of them."],
+          "actions": [
+            {
+              "id": "swerve",
+              "label": "Swerve around it (costs fuel)",
+              "hint": "swerve",
+              "keywords": ["swerve", "dodge", "avoid", "around", "steer", "evade", "veer", "turn"],
+              "outcome": { "delta": { "fuel": -14 }, "text": "You throw the ship sideways. The debris slides past, but that burn cost us." }
+            },
+            {
+              "id": "punch",
+              "label": "Punch through (hull may take damage)",
+              "hint": "punch through",
+              "keywords": ["punch", "through", "ram", "straight", "plow", "smash", "charge", "push"],
+              "chance": {
+                "p": 0.5,
+                "success": { "delta": { "hull": -8 }, "text": "We punch through. A few dents, nothing serious." },
+                "fail": { "delta": { "hull": -24 }, "text": "A solar panel spears the hull. That hurt." }
+              }
+            },
+            {
+              "id": "shields",
+              "label": "Raise the shields",
+              "hint": "raise the shields",
+              "requires": ["tag:shield"],
+              "keywords": ["shield", "shields", "deflector", "barrier"],
+              "outcome": { "delta": { "fuel": -3 }, "text": "The deflector flares blue. Debris bursts into sparks against it." }
+            },
+            {
+              "id": "laser",
+              "label": "Laser a path",
+              "hint": "laser a path",
+              "requires": ["tag:weapon"],
+              "keywords": ["laser", "shoot", "blast", "fire", "zap", "cut"],
+              "outcome": { "delta": { "fuel": -4, "hull": -3 }, "text": "You carve a tunnel through the junk. Only crumbs get through." }
+            },
+            {
+              "id": "pad_hull",
+              "label": "Strap your {mod} to the nose as a bumper",
+              "hint": "use your {mod} as a bumper",
+              "hidden": true,
+              "requires": ["tag:cushion"],
+              "keywords": ["pad", "padding", "cushion", "buffer", "bumper", "wrap"],
+              "outcome": { "delta": { "hull": -5 }, "text": "Your {item} takes the hits like a champion. That was genius." }
+            }
+          ]
+        },
+        {
+          "id": "dead_station",
+          "title": "Dead Station",
+          "scene": "🏚️",
+          "intro": ["An abandoned space station drifts across our path.", "Its fuel lines are still glowing."],
+          "actions": [
+            {
+              "id": "dock",
+              "label": "Dock and siphon its fuel (risky)",
+              "hint": "dock and siphon its fuel",
+              "keywords": ["dock", "siphon", "board", "salvage", "steal", "refuel", "grab", "fuel"],
+              "chance": {
+                "p": 0.6,
+                "success": { "delta": { "fuel": 20, "hull": -4 }, "text": "Clamps lock. We drain its tanks dry." },
+                "fail": { "delta": { "fuel": 6, "hull": -18 }, "text": "The docking arm snaps and slams into us. We only got a sip of fuel." }
+              }
+            },
+            {
+              "id": "bypass",
+              "label": "Fly past it",
+              "hint": "fly past it",
+              "keywords": ["past", "ignore", "skip", "bypass", "leave", "keep going", "fly by", "move on"],
+              "outcome": { "delta": { "fuel": -6 }, "text": "We leave the station to its ghosts." }
+            },
+            {
+              "id": "hail",
+              "label": "Ping its computer with your {mod}",
+              "hint": "ping its computer with your {mod}",
+              "requires": ["tag:signal"],
+              "keywords": ["ping", "hail", "signal", "call", "contact", "radio", "hack", "computer", "talk"],
+              "outcome": { "delta": { "fuel": 18, "oxygen": 8 }, "text": "Its computer wakes up and happily opens the fuel valves." }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "name": "Deep Space",
+      "mode": "free",
+      "pickAfter": 2,
+      "interludeAfter": true,
+      "pool": [
+        {
+          "id": "strange_signal",
+          "title": "Strange Signal",
+          "scene": "📻",
+          "intro": ["A signal is pulsing out of the dark.", "It's a rhythm. Not natural."],
+          "actions": [
+            {
+              "id": "follow",
+              "label": "Follow it (costs fuel, might pay off)",
+              "hint": "follow it",
+              "keywords": ["follow", "chase", "investigate", "check", "track", "toward", "towards", "approach", "find"],
+              "chance": {
+                "p": 0.5,
+                "success": { "delta": { "fuel": -10, "oxygen": 22 }, "text": "A derelict supply cache! Air tanks, still sealed." },
+                "fail": { "delta": { "fuel": -10, "oxygen": -8 }, "text": "Just an old probe looping its last message. We wasted the trip." }
+              }
+            },
+            {
+              "id": "ignore",
+              "label": "Hold our course",
+              "hint": "hold our course",
+              "keywords": ["ignore", "hold", "course", "stay", "skip", "keep going", "move on"],
+              "outcome": { "delta": { "oxygen": -3 }, "text": "We hold course. The signal fades behind us." }
+            },
+            {
+              "id": "decode",
+              "label": "Decode it with your {mod}",
+              "hint": "decode it with your {mod}",
+              "requires": ["tag:signal"],
+              "keywords": ["decode", "decrypt", "listen", "analyze", "analyse", "translate", "scan"],
+              "outcome": { "delta": { "fuel": -4, "oxygen": 22 }, "text": "It's a supply beacon. Your {mod} guides us straight to it." }
+            }
+          ]
+        },
+        {
+          "id": "meteor_shower",
+          "title": "Meteor Shower",
+          "scene": "☄️",
+          "intro": ["Micrometeors are sleeting past like gravel on a windshield.", "Each one is faster than a bullet."],
+          "actions": [
+            {
+              "id": "cover",
+              "label": "Hide behind an asteroid (costs fuel and air)",
+              "hint": "hide behind an asteroid",
+              "keywords": ["hide", "cover", "asteroid", "shelter", "behind", "wait"],
+              "outcome": { "delta": { "fuel": -10, "oxygen": -6 }, "text": "We tuck into an asteroid's shadow and wait it out." }
+            },
+            {
+              "id": "push",
+              "label": "Push through (hull may take damage)",
+              "hint": "push through",
+              "keywords": ["push", "through", "punch", "straight", "charge", "ram", "floor it", "full speed"],
+              "chance": {
+                "p": 0.5,
+                "success": { "delta": { "hull": -8 }, "text": "Pings and pops against the hull, but we make it." },
+                "fail": { "delta": { "hull": -22 }, "text": "A meteor punches a hole clean through the cargo bay." }
+              }
+            },
+            {
+              "id": "shields",
+              "label": "Raise the shields",
+              "hint": "raise the shields",
+              "requires": ["tag:shield"],
+              "keywords": ["shield", "shields", "deflector", "barrier"],
+              "outcome": { "delta": { "hull": -4 }, "text": "Meteors flash and vanish against the deflector." }
+            },
+            {
+              "id": "laser",
+              "label": "Laser the big ones",
+              "hint": "laser the big ones",
+              "requires": ["tag:weapon"],
+              "keywords": ["laser", "shoot", "blast", "fire", "zap"],
+              "outcome": { "delta": { "fuel": -4, "hull": -6 }, "text": "You pick off the big ones. The small ones just sting." }
+            },
+            {
+              "id": "pad_hull",
+              "label": "Strap your {mod} over the windows",
+              "hint": "use your {mod} as armor",
+              "hidden": true,
+              "requires": ["tag:cushion"],
+              "keywords": ["pad", "padding", "cushion", "buffer", "bumper", "wrap"],
+              "outcome": { "delta": { "hull": -6 }, "text": "Your {item} catches the shrapnel. Smart." }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "name": "Lunar Orbit",
+      "mode": "free",
+      "pool": [
+        {
+          "id": "o2_failure",
+          "title": "Oxygen Failure",
+          "scene": "🚨",
+          "intro": ["We made lunar orbit. The Moon fills the whole window.", "Then the alarms: the oxygen recycler just cracked. Air is leaking."],
+          "actions": [
+            {
+              "id": "strip",
+              "label": "Strip your {item} for parts to rebuild the recycler",
+              "hint": "strip your {item} for parts",
+              "keywords": ["strip", "parts", "dismantle", "sacrifice", "take apart", "scrap", "rebuild", "tear", "give it up", "break it"],
+              "outcome": { "delta": { "oxygen": 30 }, "item": "consumed", "text": "You tear your {item} apart and rebuild the recycler around it. The hissing stops." }
+            },
+            {
+              "id": "keep",
+              "label": "Keep your {item} and ration the air (risky)",
+              "hint": "keep it and ration the air",
+              "keywords": ["keep", "ration", "save it", "hold on", "breathe", "conserve", "don't"],
+              "chance": {
+                "p": 0.5,
+                "success": { "delta": { "oxygen": -12 }, "text": "Shallow breaths. It works. Barely." },
+                "fail": { "delta": { "oxygen": -28, "hull": -6 }, "text": "The leak widens. We're gasping by the time we start the descent." }
+              }
+            },
+            {
+              "id": "reroute",
+              "label": "Reroute through the life-support upgrade",
+              "hint": "reroute through the life-support upgrade",
+              "requires": ["tag:life"],
+              "keywords": ["reroute", "scrubber", "recycler", "co2", "life support", "bypass"],
+              "outcome": { "delta": { "oxygen": 12 }, "text": "The upgrade takes the load. Your {item} stays safe." }
+            },
+            {
+              "id": "plug",
+              "label": "Plug the leak with your {item}",
+              "hint": "plug the leak",
+              "hidden": true,
+              "requires": ["tag:cushion"],
+              "keywords": ["plug", "stuff", "seal", "leak", "block", "jam", "wad", "stop the leak"],
+              "outcome": { "delta": { "oxygen": 12 }, "text": "You stuff your {item} into the crack. It holds. It actually holds." }
+            },
+            {
+              "id": "fix",
+              "label": "Repair the recycler with your {mod}",
+              "hint": "repair it",
+              "hidden": true,
+              "requires": ["tag:repair"],
+              "keywords": ["fix", "repair", "weld", "wrench", "patch", "tighten", "mend"],
+              "outcome": { "delta": { "oxygen": 18, "hull": -4 }, "text": "Ten tense minutes with your {mod}, and the recycler hums back to life." }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "n": 5,
+      "name": "Landing",
+      "mode": "free",
+      "pool": [
+        {
+          "id": "boulder_field",
+          "title": "Boulder Field",
+          "scene": "🌕",
+          "intro": ["Landing zone ahead. It's a field of boulders the size of houses.", "The autopilot is guessing."],
+          "actions": [
+            {
+              "id": "manual",
+              "label": "Take the stick and land it yourself",
+              "hint": "take the stick",
+              "keywords": ["manual", "stick", "myself", "by hand", "fly it", "take control", "pilot", "i'll land", "i will land"],
+              "chance": {
+                "p": 0.65,
+                "success": { "delta": { "fuel": -12, "hull": -5 }, "text": "You thread between two boulders and touch down." },
+                "fail": { "delta": { "fuel": -12, "hull": -22 }, "text": "A boulder clips a landing leg. We hit hard." }
+              }
+            },
+            {
+              "id": "autopilot",
+              "label": "Trust the autopilot",
+              "hint": "trust the autopilot",
+              "keywords": ["auto", "autopilot", "trust", "computer"],
+              "chance": {
+                "p": 0.5,
+                "success": { "delta": { "fuel": -6, "hull": -6 }, "text": "The autopilot guesses right. Textbook landing." },
+                "fail": { "delta": { "fuel": -6, "hull": -30 }, "text": "The autopilot guesses wrong. Metal screams." }
+              }
+            },
+            {
+              "id": "hover",
+              "label": "Hover and search for flat ground (costs lots of fuel)",
+              "hint": "hover and search for flat ground",
+              "keywords": ["hover", "search", "look", "flat", "scout", "circle"],
+              "outcome": { "delta": { "fuel": -24 }, "text": "We burn fuel hunting for flat ground, but we find it." }
+            },
+            {
+              "id": "airbag",
+              "label": "Deploy your {mod}",
+              "hint": "deploy your {mod}",
+              "requires": ["tag:airbag"],
+              "keywords": ["airbag", "deploy", "inflate", "bounce", "balloon"],
+              "outcome": { "delta": { "fuel": -5, "hull": -2 }, "text": "Your {mod} bursts open. We bounce twice and roll to a stop." }
+            }
+          ]
+        },
+        {
+          "id": "dust_storm",
+          "title": "Dust Blind",
+          "scene": "🌫️",
+          "intro": ["Fifty meters up, our engine wash kicks up a blinding cloud of moon dust.", "I can't see the ground."],
+          "actions": [
+            {
+              "id": "drop",
+              "label": "Cut the engine and drop",
+              "hint": "cut the engine and drop",
+              "keywords": ["cut", "drop", "fall", "kill", "engine off"],
+              "chance": {
+                "p": 0.4,
+                "success": { "delta": { "hull": -10 }, "text": "Thud. We're down. Everything still attached." },
+                "fail": { "delta": { "hull": -30 }, "text": "It was a lot more than fifty meters." }
+              }
+            },
+            {
+              "id": "feather",
+              "label": "Feather the thrusters down slowly (costs fuel)",
+              "hint": "feather the thrusters down slowly",
+              "keywords": ["feather", "slow", "gentle", "careful", "ease", "thrusters", "descend"],
+              "outcome": { "delta": { "fuel": -18, "hull": -4 }, "text": "Inch by inch, we sink through the dust and settle." }
+            },
+            {
+              "id": "beacon",
+              "label": "Lock onto the base beacon with your {mod}",
+              "hint": "lock onto the base beacon with your {mod}",
+              "requires": ["tag:signal"],
+              "keywords": ["beacon", "lock", "signal", "guide", "instrument", "radar"],
+              "outcome": { "delta": { "fuel": -6 }, "text": "Your {mod} finds the beacon. We land blind, dead center." }
+            },
+            {
+              "id": "airbag",
+              "label": "Deploy your {mod}",
+              "hint": "deploy your {mod}",
+              "requires": ["tag:airbag"],
+              "keywords": ["airbag", "deploy", "inflate", "bounce", "balloon"],
+              "outcome": { "delta": { "fuel": -5, "hull": -2 }, "text": "Your {mod} bursts open. We bounce out of the dust cloud and roll to a stop." }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "interludes": [
+    {
+      "id": "solar_flare",
+      "text": "☀️ Solar flare! Radiation floods the cabin.",
+      "delta": { "oxygen": -8, "hull": -6 },
+      "guard": { "requires": ["tag:insulation"], "text": "☀️ Solar flare! Your {mod} soaks up the radiation. Not a scratch.", "delta": {} }
+    },
+    {
+      "id": "supply_pod",
+      "text": "📦 A supply pod from another rocket drifts by. We grab it.",
+      "delta": { "fuel": 10, "oxygen": 8 }
+    },
+    {
+      "id": "hull_crack",
+      "text": "💥 A micro-crack spiders across the hull.",
+      "delta": { "hull": -12 },
+      "guard": { "requires": ["tag:repair"], "text": "💥 A micro-crack in the hull. Your {mod} seals it in seconds.", "delta": { "hull": -2 } }
+    }
+  ]
+}

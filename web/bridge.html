@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bridge · Last Rocket to the Moon</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body { padding: 20px; min-height: 100vh; }
+    .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; grid-template-areas: "top top" "route route" "res cargo" "log cargo"; }
+    @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; grid-template-areas: "top" "route" "cargo" "res" "log"; } }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; backdrop-filter: blur(6px); }
+    .panel h2 { margin: 0 0 12px; font-size: 11px; letter-spacing: .2em; color: var(--muted); font-weight: 700; }
+
+    .top { grid-area: top; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .top h1 { margin: 0; font-size: 18px; letter-spacing: .24em; font-weight: 900; }
+    .top h1 span { color: var(--cyan); }
+    .top .stage { font-size: 14px; color: var(--muted); }
+    .top .stage b { color: var(--text); }
+    .live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); letter-spacing: .12em; }
+    .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+    .live.on i { background: var(--hull); box-shadow: 0 0 8px var(--hull); }
+
+    /* route */
+    .route { grid-area: route; position: relative; height: 150px; padding: 0 60px; }
+    .route .track { position: absolute; left: 90px; right: 90px; top: 50%; height: 2px; background: repeating-linear-gradient(90deg, #7aa2ff55 0 8px, transparent 8px 16px); }
+    .route .planet { position: absolute; top: 50%; transform: translateY(-50%); font-size: 64px; filter: drop-shadow(0 0 20px #4f8bff66); }
+    .route .earth { left: 14px; }
+    .route .moon { right: 14px; filter: drop-shadow(0 0 22px #fff5c866); }
+    .route .node { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #1a2350; border: 2px solid #7aa2ff88; }
+    .route .node.done { background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .route .node span { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+    .route .rocket { position: absolute; top: 50%; font-size: 40px; transform: translate(-50%, -62%) rotate(45deg); transition: left 1.6s cubic-bezier(.5,0,.2,1); filter: drop-shadow(0 0 10px #ffb54799); }
+    .route .rocket.dead { filter: grayscale(1) opacity(.5); }
+    .route .flame { position: absolute; left: -18px; top: 34px; width: 20px; height: 8px; border-radius: 50%; background: radial-gradient(var(--fuel), transparent 70%); transform: rotate(-45deg); }
+    .route .rocket.eco .flame { background: radial-gradient(var(--cyan), transparent 70%); }
+
+    /* resources */
+    .res { grid-area: res; }
+    .bar { margin-bottom: 16px; }
+    .bar .lbl { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+    .bar .lbl .val { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .bar .lbl .red { font-size: 11px; color: var(--cyan); margin-left: 8px; }
+    .bar .track { position: relative; height: 14px; border-radius: 8px; background: #ffffff10; overflow: visible; }
+    .bar .fill { height: 100%; border-radius: 8px; transition: width .9s cubic-bezier(.3,1.2,.4,1); }
+    .bar.fuel .fill { background: linear-gradient(90deg, #ff7a2f, var(--fuel)); }
+    .bar.oxygen .fill { background: linear-gradient(90deg, #2d8cff, var(--oxygen)); }
+    .bar.hull .fill { background: linear-gradient(90deg, #2fbf62, var(--hull)); }
+    .bar.low .fill { animation: low 1s infinite; }
+    @keyframes low { 50% { filter: brightness(1.8); } }
+    .bar.up .track { box-shadow: 0 0 16px var(--hull); }
+    .bar.down .track { box-shadow: 0 0 16px var(--danger); }
+    .delta { position: absolute; right: 0; top: -22px; font-weight: 900; font-size: 15px; animation: rise 1.2s ease-out forwards; }
+    .delta.plus { color: var(--hull); } .delta.minus { color: var(--danger); }
+    @keyframes rise { from { transform: translateY(8px); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-14px); opacity: 0; } }
+
+    /* cargo + gear */
+    .cargo { grid-area: cargo; }
+    .holo {
+      position: relative; height: 220px; border-radius: 14px; overflow: hidden; display: grid; place-items: center;
+      background: radial-gradient(ellipse at 50% 60%, #0d3a4a, #060b18 70%); border: 1px solid #4ff3ff44;
+    }
+    .holo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .holo .icon { font-size: 92px; filter: drop-shadow(0 0 24px var(--cyan)); }
+    .holo .empty { color: var(--muted); font-size: 13px; letter-spacing: .14em; }
+    .holo.scanning img { filter: sepia(1) hue-rotate(140deg) saturate(3) brightness(.9) contrast(1.2); opacity: .85; }
+    .holo.scanning { box-shadow: 0 0 30px #4ff3ff66, inset 0 0 40px #4ff3ff55; border-color: var(--cyan); }
+    .holo.scanning::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(0deg, #4ff3ff18 0 2px, transparent 2px 5px);
+    }
+    .holo.scanning::after {
+      content: ''; position: absolute; left: 0; right: 0; height: 26%; pointer-events: none;
+      background: linear-gradient(180deg, transparent, #4ff3ffaa 50%, transparent); animation: sweep 1.6s linear infinite;
+    }
+    @keyframes sweep { from { top: -30%; } to { top: 100%; } }
+    .holo .tag { position: absolute; left: 10px; bottom: 10px; font-size: 11px; letter-spacing: .16em; color: var(--cyan); background: #060b18cc; padding: 3px 8px; border-radius: 6px; }
+    .holo .photo-mini { position: absolute; right: 10px; top: 10px; width: 64px; height: 64px; object-fit: cover; border-radius: 10px; border: 1px solid #ffffff44; }
+    .item-info { margin: 12px 0 16px; }
+    .item-info .n { font-size: 20px; font-weight: 900; }
+    .item-info .c { font-size: 11px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
+    .item-info .b { color: var(--cyan); font-style: italic; font-size: 14px; margin-top: 6px; }
+    .item-info .status { display: inline-block; margin-left: 8px; font-size: 10px; padding: 2px 8px; border-radius: 6px; letter-spacing: .14em; vertical-align: middle; }
+    .status.kept { background: #7dff9b22; color: var(--hull); } .status.consumed { background: #ff5a6e22; color: var(--danger); }
+    .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .slot { min-height: 96px; border-radius: 12px; border: 1px dashed #ffffff26; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; }
+    .slot.filled { border-style: solid; border-color: #4ff3ff55; background: #4ff3ff0a; animation: install .6s ease-out; }
+    .slot.rare { border-color: #5a8cff; } .slot.legendary { border-color: var(--gold); box-shadow: 0 0 16px #ffd76a44; }
+    .slot .i { font-size: 30px; } .slot .n { font-size: 12px; font-weight: 700; } .slot .e { font-size: 10px; color: var(--muted); }
+    @keyframes install { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+    .combos { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .combo { padding: 6px 12px; border-radius: 999px; background: linear-gradient(90deg, #6b2bd9, #2b6bd9); font-size: 12px; font-weight: 800; animation: install .6s; box-shadow: 0 0 16px #b98cff66; }
+
+    /* log */
+    .log { grid-area: log; }
+    #comms { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; font-size: 13.5px; line-height: 1.4; }
+    #comms div { padding-left: 10px; border-left: 2px solid #4ff3ff55; white-space: pre-wrap; animation: install .3s; }
+    .ending { font-size: 26px; font-weight: 900; letter-spacing: .14em; }
+    .ending.success { color: #fff6d8; } .ending.failure { color: var(--danger); } .ending.rescue { color: var(--oxygen); }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="wrap">
+    <div class="top">
+      <h1>LAST ROCKET <span>·</span> BRIDGE</h1>
+      <div class="stage" id="stage">Connecting…</div>
+      <div class="live" id="live"><i></i>LIVE</div>
+    </div>
+
+    <div class="panel route" id="route">
+      <div class="track"></div>
+      <div class="planet earth">🌍</div>
+      <div class="planet moon">🌕</div>
+      <div class="rocket" id="rocket"><div class="flame"></div>🚀</div>
+    </div>
+
+    <div class="panel res">
+      <h2>SHIP SYSTEMS</h2>
+      <div class="bar fuel" data-r="fuel"><div class="lbl"><span>⛽ Fuel<span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
+      <div class="bar oxygen" data-r="oxygen"><div class="lbl"><span>🫁 Oxygen<span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
+      <div class="bar hull" data-r="hull"><div class="lbl"><span>🛠️ Hull<span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
+    </div>
+
+    <div class="panel cargo">
+      <h2>CARGO FROM EARTH</h2>
+      <div class="holo" id="holo"><div class="empty">AWAITING SCAN</div></div>
+      <div class="item-info" id="itemInfo"></div>
+      <h2>UPGRADES</h2>
+      <div class="slots" id="slots"></div>
+      <div class="combos" id="combos"></div>
+    </div>
+
+    <div class="panel log">
+      <h2>COMMS</h2>
+      <div id="comms"></div>
+    </div>
+  </div>
+  <script type="module" src="/static/bridge.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "last-rocket",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Last Rocket to the Moon — HackWashU 2026",
+  "scripts": {
+    "start": "node src/main.ts",
+    "dev": "node --watch src/main.ts",
+    "test": "node --test \"test/*.test.ts\"",
+    "simulate": "node scripts/simulate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=23.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
