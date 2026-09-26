@@ -69,7 +69,7 @@
 - Pro 档没有完整的群聊接口；Photon Call 尚未开放；聊天背景自定义约需 30 秒同步，已弃用。
 - 已验证（9/26 真机）：iPhone 发来的照片是 `image/heic`（如 IMG_1685.HEIC，约 900KB），SDK 用 `attachment.read()` 取到 Buffer；程序可以连续发多条消息，也可以在玩家没发消息时主动推送（`imessage(app).space.create(号码)`）。
 - 自动登记：`src/channel/photon-users.ts` 直接调 Photon 后台接口 `GET/POST https://app.photon.codes/api/projects/<id>/spectrum/users`（Bearer 用 CLI 登录令牌，没有刷新机制，失效后重新 `npx @photon-ai/cli login`）。同一号码复用已有登记，绝不删了重加（会换号）；同时最多 3 个登记请求；名额上限 PHOTON_USER_LIMIT（默认 100）。接口要求 email，我们用 `player-<哈希>@example.com` 占位。
-- 待验证（需要队友的新号码）：新登记的用户是否立刻能发消息、`assignedPhoneNumber` 是否立即返回。
+- 已验证（9/26 队友实测）：加入页自动登记的全新号码立刻就能发 iMessage，不需要邀请或确认；`assignedPhoneNumber` 立即返回；不同玩家可能被分到不同的共享号码（所以二维码必须每人一个）；占位 email 被接受。
 - spectrum-ts 在 Node 下也能跑，不依赖 Bun。Windows 上 `bun create spectrum-project` 会因为调不起 npx 而取不到密钥，要手动登录 CLI 后用 `photon projects secret --project <id> --json` 取。
 
 ## Gemini 已确认的事实（9/26 实测）
@@ -108,6 +108,6 @@
 - [x] 接入 Gemini：照片识别、自由回答解析、结局叙述、超时和限流兜底都已实测
 - [x] HEIC 转 JPEG：`src/media/image.ts`（纯 JS 的 heic-decode + jpeg-js，Windows 可用；长边缩到 1280；同时最多处理 2 张），iMessage 和网页模拟器两个入口都会转换；转换失败就保留原图交给 Gemini
 - [x] 电脑加入页 + 自动登记 + 配对码、团队控制页、Cloudflare 隧道、iMessage 自动发舰桥链接、舰桥跟随新一局
-- [ ] 用队友的新号码实测加入页完整流程
+- [x] 队友用全新号码走通加入页 → 自动登记 → 扫码配对 → 中文完整一局
 - [ ] 存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进
