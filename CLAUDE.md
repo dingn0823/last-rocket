@@ -66,6 +66,7 @@
 - 登记后 Photon 分配一个共享号码（后台显示为 Texts on）。删除后重新添加会换号，所以号码必须实时从 API 获取，禁止写死。
 - 对已经给我们发过消息的玩家，程序可以随时主动推送（已实测）；对从没联系过的号码能否主动发起仍未测，所以加入流程仍设计为玩家先发第一条消息。
 - 玩家 iPhone 的 iMessage 身份必须和登记的手机号一致。
+- 已遇到（9/26）：从邮箱身份（Mac/iPad 或 iPhone 设成用邮箱开始新对话）发来的消息，Photon 共享号码直接拒收并自动回复 "can't route it to the right agent"，我们的服务器收不到任何消息。解决：iPhone 设置 › App › 信息 › 发送与接收 › 开始新对话时使用 → 手机号，删掉旧对话再发。加入页已加醒目提示。
 - Pro 档没有完整的群聊接口；Photon Call 尚未开放；聊天背景自定义约需 30 秒同步，已弃用。
 - 已验证（9/26 真机）：iPhone 发来的照片是 `image/heic`（如 IMG_1685.HEIC，约 900KB），SDK 用 `attachment.read()` 取到 Buffer；程序可以连续发多条消息，也可以在玩家没发消息时主动推送（`imessage(app).space.create(号码)`）。
 - 自动登记：`src/channel/photon-users.ts` 直接调 Photon 后台接口 `GET/POST https://app.photon.codes/api/projects/<id>/spectrum/users`（Bearer 用 CLI 登录令牌，没有刷新机制，失效后重新 `npx @photon-ai/cli login`）。同一号码复用已有登记，绝不删了重加（会换号）；同时最多 3 个登记请求；名额上限 PHOTON_USER_LIMIT（默认 100）。接口要求 email，我们用 `player-<哈希>@example.com` 占位。
