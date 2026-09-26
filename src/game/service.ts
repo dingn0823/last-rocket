@@ -12,6 +12,7 @@ import type { Content, EngineInput, Outbound, RunState } from '../engine/types.t
 import type { Hub } from '../server/hub.ts';
 import type { Player, RunRecord, Store } from '../store/store.ts';
 import { JoinRegistry } from './join.ts';
+import { feedFor, ScreenFeed, screenState } from './screen.ts';
 
 export interface ServiceOptions {
   contents: Record<Lang, Content>;
@@ -42,6 +43,9 @@ export class GameService {
   shortUrl = '';
   eventMode: boolean;
   readonly joins = new JoinRegistry();
+  readonly feed = new ScreenFeed();
+  /** Big screen shows runs from this moment on; the host resets it before the finals. */
+  screenSince = 0;
   private channels = new Map<string, Channel>();
   private queues = new Map<string, Promise<void>>();
 
@@ -182,7 +186,7 @@ export class GameService {
 
     // Save first, then send. A failed send never re-runs the step.
     this.store.saveRun(rec);
-    await this.deliver(rec, result.out);
+    await this.deliver(rec, result.out, decision.input.type === 'start');
 
     if (!wasEnded && rec.state.phase === 'ended') {
       await this.narrate(rec);
@@ -265,8 +269,27 @@ export class GameService {
     }
   }
 
-  private async deliver(rec: RunRecord, out: Outbound[]): Promise<void> {
+  nicknameOf(rec: RunRecord): string {
+    const n = this.store.getPlayer(rec.address)?.nickname;
+    return n && n !== 'Crew' ? n : `Crew ${rec.state.runId.slice(0, 3).toUpperCase()}`;
+  }
+
+  /** Everyone at once, for the big screen. */
+  screenState(includeSim = false) {
+    return { ...screenState(this.store, this.contents.en, (r) => this.nicknameOf(r), { since: this.screenSince, includeSim }), feed: this.feed.recent() };
+  }
+
+  clearScreen(): void {
+    this.screenSince = Date.now();
+    this.feed.clear();
+    this.hub.publish('screen', 'update', { feed: [] });
+  }
+
+  private async deliver(rec: RunRecord, out: Outbound[], started = false): Promise<void> {
     this.hub.publish(`bridge:${rec.bridgeToken}`, 'update', { snapshot: this.snapshotFor(rec), out });
+    const items = rec.channel === 'sim' ? [] : feedFor(this.contents.en, this.nicknameOf(rec), rec.state, out, started);
+    this.feed.push(items);
+    this.hub.publish('screen', 'update', { feed: items });
     try {
       await this.channels.get(rec.channel)?.send(rec.address, out);
     } catch (err) {

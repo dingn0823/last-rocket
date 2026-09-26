@@ -88,6 +88,7 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
         return res.end();
       }
       if (get && path === '/phone') return serveFile(res, join(webDir, 'phone.html'));
+      if (get && path === '/screen') return serveFile(res, join(webDir, 'screen.html'));
       if (get && /^\/bridge\/[\w-]+$/.test(path)) return serveFile(res, join(webDir, 'bridge.html'));
       if (get && path === '/host') {
         if (!isLocal(req)) return send(res, 403, { error: 'host console is only available on the host laptop' });
@@ -202,7 +203,32 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
         return send(res, 200, { snapshot: game.snapshotFor(rec), recent, next, cursor: hub.cursor });
       }
 
+      // ---------- big screen (read-only: nicknames and gear, never photos) ----------
+      if (get && path === '/api/screen/state') {
+        return send(res, 200, {
+          ...game.screenState(url.searchParams.get('sim') === '1'),
+          stageNames: game.contents.en.stages.map((s) => s.name),
+          joinUrl: `${game.publicUrl || 'http://localhost:' + (req.socket.localPort ?? 3000)}/join`,
+          shortUrl: game.shortUrl || null,
+          cursor: hub.cursor,
+        });
+      }
+      if (get && path === '/api/screen/poll') return hub.poll('screen', after(url), res);
+
       // ---------- host console (laptop only) ----------
+      if (req.method === 'POST' && path === '/api/host/clear-screen') {
+        if (!isLocal(req)) return send(res, 403, { error: 'forbidden' });
+        game.clearScreen();
+        console.log('[host] big screen cleared');
+        return send(res, 200, { ok: true });
+      }
+      if (req.method === 'POST' && path === '/api/host/event-mode') {
+        if (!isLocal(req)) return send(res, 403, { error: 'forbidden' });
+        const body = await readJson(req);
+        game.eventMode = !!body.on;
+        console.log(`[host] event mode ${game.eventMode ? 'ON: numbered options, no AI parsing' : 'OFF: free text'}`);
+        return send(res, 200, { eventMode: game.eventMode });
+      }
       if (get && path === '/api/host/state') {
         if (!isLocal(req)) return send(res, 403, { error: 'forbidden' });
         const runs = game.store.allRuns()

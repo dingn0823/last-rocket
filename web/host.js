@@ -3,6 +3,7 @@ import { escapeHtml } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
 let lastJoinUrl = '';
+let eventMode = false;
 
 function ago(t) {
   const s = Math.round((Date.now() - t) / 1000);
@@ -39,7 +40,9 @@ async function refresh() {
   set('sTunnel', s.publicUrl ? 'online' : 'local only (starting…)', s.publicUrl ? 'ok' : 'warn');
   set('sPhoton', s.photon.ok ? `ready · ${s.photon.users}/${s.photon.limit} seats` : `OFF · ${s.photon.error ?? ''}`, s.photon.ok ? (s.photon.users >= s.photon.limit ? 'bad' : 'ok') : 'bad');
   set('sAi', s.ai, s.ai === 'on' ? 'ok' : s.ai === 'rate-limited' ? 'warn' : 'bad');
-  set('sMode', s.eventMode ? 'event (numbered options)' : 'single player (free text)', 'ok');
+  set('sMode', s.eventMode ? 'EVENT (numbered options)' : 'single player (free text)', s.eventMode ? 'warn' : 'ok');
+  eventMode = s.eventMode;
+  $('modeBtn').textContent = s.eventMode ? '↩ Back to free-text mode' : '👥 Switch to event mode (many players)';
   $('runs').innerHTML = s.runs.length
     ? s.runs.map((r) => `
       <tr class="${r.current ? '' : 'old'}">
@@ -53,6 +56,16 @@ async function refresh() {
     : '<tr><td colspan="6">No runs yet.</td></tr>';
 }
 
+$('modeBtn').onclick = async () => {
+  $('modeBtn').disabled = true;
+  await fetch('/api/host/event-mode', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ on: !eventMode }) });
+  $('modeBtn').disabled = false;
+  refresh();
+};
+$('clearBtn').onclick = async () => {
+  if (!confirm('Clear the big screen? Leaderboard and feed start from zero (no runs are deleted).')) return;
+  await fetch('/api/host/clear-screen', { method: 'POST' });
+};
 $('bigBtn').onclick = () => $('big').classList.add('on');
 $('big').onclick = () => $('big').classList.remove('on');
 refresh();
