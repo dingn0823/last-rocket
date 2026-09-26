@@ -72,14 +72,18 @@ function clamp(v: number, max: number): number {
   return Math.max(0, Math.min(max, v));
 }
 
-/** Apply deltas. Costs (negative) are softened by reduce effects; gains are not. Returns what actually changed. */
-export function applyDeltas(s: RunState, c: Content, d: Deltas | undefined): Deltas {
+/**
+ * Apply deltas. Costs (negative) are softened by reduce effects; gains are not.
+ * `jitter` returns a random factor (e.g. 0.75–1.25) so the same choice plays out a little differently each run.
+ */
+export function applyDeltas(s: RunState, c: Content, d: Deltas | undefined, jitter?: () => number): Deltas {
   const applied: Deltas = {};
   if (!d) return applied;
   for (const r of RESOURCES) {
-    const raw = d[r];
-    if (!raw) continue;
-    const amount = raw < 0 ? Math.round(raw * (1 - reductionPct(s, c, r) / 100)) : raw;
+    const base = d[r];
+    if (!base) continue;
+    const raw = jitter ? base * jitter() : base;
+    const amount = Math.round(raw < 0 ? raw * (1 - reductionPct(s, c, r) / 100) : raw);
     const before = s.res[r];
     s.res[r] = clamp(before + amount, c.max);
     applied[r] = s.res[r] - before;
@@ -97,6 +101,23 @@ export function applyInstantEffects(s: RunState, c: Content, effects: Effect[]):
       s.res[e.to] = clamp(s.res[e.to] + Math.round((e.gain * paid) / e.cost), c.max);
     }
   }
+}
+
+/** Item reserves: the first time a resource drops below the threshold, top it up once. */
+export function useReserves(s: RunState, c: Content): { gear: Gear; resource: Resource; amount: number }[] {
+  const used: { gear: Gear; resource: Resource; amount: number }[] = [];
+  for (const g of activeGear(s, c)) {
+    for (const e of g.effects) {
+      if (e.type !== 'reserve' || s.res[e.resource] >= e.below) continue;
+      const key = `${g.key}:reserve:${e.resource}`;
+      if (s.shieldsUsed.includes(key)) continue;
+      s.shieldsUsed.push(key);
+      const before = s.res[e.resource];
+      s.res[e.resource] = clamp(before + e.amount, c.max);
+      used.push({ gear: g, resource: e.resource, amount: s.res[e.resource] - before });
+    }
+  }
+  return used;
 }
 
 /** If hull or oxygen hit 0, burn the first unused shield. Returns the saves made. */

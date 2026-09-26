@@ -33,6 +33,7 @@
   "clarifyNone": "Say again? You could {hints}.",
   "numberedFallback": "Let's keep it simple. Reply with a number:",
   "numberedAsk": "Reply with a number:",
+  "reserveUsed": "{icon} Emergency reserve! Your {name} kicks in: {resource} +{amount}.",
   "shieldSaved": "🛡️ {name} kicks in and saves us! {resource} back to {amount}.",
   "stageHeader": "STAGE {n}/5 · {name}",
   "status": "⛽ Fuel {fuel} · 🫁 O₂ {oxygen} · 🛠️ Hull {hull}",

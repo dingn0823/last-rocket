@@ -6,9 +6,20 @@
       "rarity": "common",
       "icon": "🧪",
       "tags": [],
-      "effects": [{ "type": "refill", "resource": "oxygen", "amount": 20 }],
-      "effectText": "+20 oxygen now.",
-      "keywords": ["oxygen", "o2", "canister", "air"]
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "oxygen",
+          "amount": 25
+        }
+      ],
+      "effectText": "+25 oxygen now.",
+      "keywords": [
+        "oxygen",
+        "o2",
+        "canister",
+        "air"
+      ]
     },
     {
       "id": "fuel_cell",
@@ -16,9 +27,18 @@
       "rarity": "common",
       "icon": "⛽",
       "tags": [],
-      "effects": [{ "type": "refill", "resource": "fuel", "amount": 20 }],
-      "effectText": "+20 fuel now.",
-      "keywords": ["fuel", "cell"]
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "fuel",
+          "amount": 25
+        }
+      ],
+      "effectText": "+25 fuel now.",
+      "keywords": [
+        "fuel",
+        "cell"
+      ]
     },
     {
       "id": "patch_kit",
@@ -26,19 +46,41 @@
       "rarity": "common",
       "icon": "🩹",
       "tags": [],
-      "effects": [{ "type": "refill", "resource": "hull", "amount": 20 }],
-      "effectText": "+20 hull now.",
-      "keywords": ["patch", "kit", "hull"]
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "hull",
+          "amount": 25
+        }
+      ],
+      "effectText": "+25 hull now.",
+      "keywords": [
+        "patch",
+        "kit",
+        "hull"
+      ]
     },
     {
       "id": "efficient_nozzle",
       "name": "Efficient Nozzle",
       "rarity": "common",
       "icon": "🔥",
-      "tags": ["engine"],
-      "effects": [{ "type": "reduce", "resource": "fuel", "pct": 25 }],
+      "tags": [
+        "engine"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "fuel",
+          "pct": 25
+        }
+      ],
       "effectText": "Fuel costs -25%.",
-      "keywords": ["nozzle", "efficient", "engine"]
+      "keywords": [
+        "nozzle",
+        "efficient",
+        "engine"
+      ]
     },
     {
       "id": "air_converter",
@@ -46,62 +88,137 @@
       "rarity": "common",
       "icon": "♻️",
       "tags": [],
-      "effects": [{ "type": "swap", "from": "fuel", "to": "oxygen", "cost": 15, "gain": 25 }],
-      "effectText": "Trade 15 fuel for 25 oxygen, right now.",
-      "keywords": ["converter", "convert", "trade", "swap"]
+      "effects": [
+        {
+          "type": "swap",
+          "from": "fuel",
+          "to": "oxygen",
+          "cost": 20,
+          "gain": 30
+        }
+      ],
+      "effectText": "Trade 20 fuel for 30 oxygen, right now.",
+      "keywords": [
+        "converter",
+        "convert",
+        "trade",
+        "swap"
+      ]
     },
     {
       "id": "co2_scrubber",
       "name": "CO₂ Scrubber",
       "rarity": "rare",
       "icon": "🌬️",
-      "tags": ["life"],
-      "effects": [{ "type": "reduce", "resource": "oxygen", "pct": 30 }],
+      "tags": [
+        "life"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "oxygen",
+          "pct": 30
+        }
+      ],
       "effectText": "Oxygen costs -30%.",
-      "keywords": ["scrubber", "co2", "breathing"]
+      "keywords": [
+        "scrubber",
+        "co2",
+        "breathing"
+      ]
     },
     {
       "id": "reinforced_plating",
       "name": "Reinforced Plating",
       "rarity": "rare",
       "icon": "🧱",
-      "tags": ["armor"],
-      "effects": [{ "type": "reduce", "resource": "hull", "pct": 30 }],
+      "tags": [
+        "armor"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "hull",
+          "pct": 30
+        }
+      ],
       "effectText": "Hull damage -30%.",
-      "keywords": ["plating", "armor", "armour", "reinforced", "plate"]
+      "keywords": [
+        "plating",
+        "armor",
+        "armour",
+        "reinforced",
+        "plate"
+      ]
     },
     {
       "id": "deflector_shield",
       "name": "Deflector Shield",
       "rarity": "rare",
       "icon": "🛡️",
-      "tags": ["shield"],
-      "effects": [{ "type": "shield", "restore": 25 }],
+      "tags": [
+        "shield"
+      ],
+      "effects": [
+        {
+          "type": "shield",
+          "restore": 30
+        }
+      ],
       "effectText": "Unlocks shield moves. Once, saves you from a fatal hit.",
-      "keywords": ["shield", "deflector"]
+      "keywords": [
+        "shield",
+        "deflector"
+      ]
     },
     {
       "id": "mining_laser",
       "name": "Mining Laser",
       "rarity": "rare",
       "icon": "🎯",
-      "tags": ["weapon"],
-      "effects": [{ "type": "reduce", "resource": "hull", "pct": 10 }],
+      "tags": [
+        "weapon"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "hull",
+          "pct": 10
+        }
+      ],
       "effectText": "Unlocks laser moves. Hull damage -10%.",
-      "keywords": ["laser", "mining", "weapon", "gun"]
+      "keywords": [
+        "laser",
+        "mining",
+        "weapon",
+        "gun"
+      ]
     },
     {
       "id": "solar_sail",
       "name": "Solar Sail",
       "rarity": "legendary",
       "icon": "⛵",
-      "tags": ["engine"],
-      "effects": [
-        { "type": "reduce", "resource": "fuel", "pct": 40 },
-        { "type": "refill", "resource": "fuel", "amount": 10 }
+      "tags": [
+        "engine"
       ],
-      "effectText": "Fuel costs -40%. +10 fuel now.",
-      "keywords": ["sail", "solar"]
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "fuel",
+          "pct": 40
+        },
+        {
+          "type": "refill",
+          "resource": "fuel",
+          "amount": 15
+        }
+      ],
+      "effectText": "Fuel costs -40%. +15 fuel now.",
+      "keywords": [
+        "sail",
+        "solar"
+      ]
     },
     {
       "id": "phoenix_foam",
@@ -110,40 +227,75 @@
       "icon": "🧯",
       "tags": [],
       "effects": [
-        { "type": "refill", "resource": "hull", "amount": 15 },
-        { "type": "shield", "restore": 50 }
+        {
+          "type": "refill",
+          "resource": "hull",
+          "amount": 20
+        },
+        {
+          "type": "shield",
+          "restore": 50
+        }
       ],
-      "effectText": "+15 hull now. Once, cheats death and restores 50.",
-      "keywords": ["phoenix", "foam"]
+      "effectText": "+20 hull now. Once, cheats death and restores 50.",
+      "keywords": [
+        "phoenix",
+        "foam"
+      ]
     },
     {
       "id": "quantum_recycler",
       "name": "Quantum Recycler",
       "rarity": "legendary",
       "icon": "🌀",
-      "tags": ["life"],
-      "effects": [
-        { "type": "reduce", "resource": "oxygen", "pct": 40 },
-        { "type": "refill", "resource": "oxygen", "amount": 15 }
+      "tags": [
+        "life"
       ],
-      "effectText": "Oxygen costs -40%. +15 oxygen now.",
-      "keywords": ["quantum", "recycler"]
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "oxygen",
+          "pct": 40
+        },
+        {
+          "type": "refill",
+          "resource": "oxygen",
+          "amount": 20
+        }
+      ],
+      "effectText": "Oxygen costs -40%. +20 oxygen now.",
+      "keywords": [
+        "quantum",
+        "recycler"
+      ]
     }
   ],
   "picks": [
     {
       "intro": "Launch bay drone found three upgrades. We have room for one:",
-      "weights": { "common": 80, "rare": 20, "legendary": 0 },
+      "weights": {
+        "common": 80,
+        "rare": 20,
+        "legendary": 0
+      },
       "guaranteeCombo": false
     },
     {
       "intro": "Salvage from the debris belt. Pick one:",
-      "weights": { "common": 45, "rare": 50, "legendary": 5 },
+      "weights": {
+        "common": 45,
+        "rare": 50,
+        "legendary": 5
+      },
       "guaranteeCombo": true
     },
     {
       "intro": "Something rare is floating out here. Pick one:",
-      "weights": { "common": 15, "rare": 50, "legendary": 35 },
+      "weights": {
+        "common": 15,
+        "rare": 50,
+        "legendary": 35
+      },
       "guaranteeCombo": false
     }
   ]

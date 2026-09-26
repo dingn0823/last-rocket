@@ -17,12 +17,13 @@
       ],
       "effects": [
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "oxygen",
-          "amount": 15
+          "amount": 40,
+          "below": 35
         }
       ],
-      "effectText": "+15 oxygen now. Stores air for the long haul.",
+      "effectText": "Emergency reserve: when O₂ drops below 35, +40 O₂ (once).",
       "blurb": "your {label}, pressure-sealed into an emergency air tank",
       "keywords": [
         "water bottle",
@@ -57,12 +58,13 @@
       ],
       "effects": [
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "fuel",
-          "amount": 15
+          "amount": 40,
+          "below": 35
         }
       ],
-      "effectText": "+15 fuel now. Extra tank bolted to the hull.",
+      "effectText": "Emergency reserve: when fuel drops below 35, +40 fuel (once).",
       "blurb": "your {label}, welded to the hull as a fuel side pod",
       "keywords": [
         "coke",
@@ -102,10 +104,10 @@
         {
           "type": "reduce",
           "resource": "oxygen",
-          "pct": 20
+          "pct": 30
         }
       ],
-      "effectText": "Oxygen costs -20%. Splits recycled water into air.",
+      "effectText": "Oxygen costs -30%. Splits recycled water into air.",
       "blurb": "your {label}, plumbed into a water recycler",
       "keywords": [
         "plant",
@@ -228,12 +230,13 @@
       ],
       "effects": [
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "hull",
-          "amount": 8
+          "amount": 15,
+          "below": 35
         }
       ],
-      "effectText": "+8 hull now. Unlocks a soft landing.",
+      "effectText": "Hull below 35 → +15 (once). Unlocks a soft landing.",
       "blurb": "your {label}, folded into a landing airbag",
       "keywords": [
         "umbrella",
@@ -266,12 +269,13 @@
       ],
       "effects": [
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "hull",
-          "amount": 15
+          "amount": 30,
+          "below": 35
         }
       ],
-      "effectText": "+15 hull now. Fixes what breaks.",
+      "effectText": "Emergency repair: when hull drops below 35, +30 hull (once).",
       "blurb": "your {label}, ground down into a hatch repair wrench",
       "keywords": [
         "wrench",
@@ -384,12 +388,13 @@
       ],
       "effects": [
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "fuel",
-          "amount": 10
+          "amount": 20,
+          "below": 35
         }
       ],
-      "effectText": "+10 fuel now. Talks to anything with a radio.",
+      "effectText": "Fuel below 35 → +20 (once). Talks to anything with a radio.",
       "blurb": "your {label}, hacked into a long-range signal booster",
       "keywords": [
         "phone",
@@ -431,10 +436,10 @@
       "effects": [
         {
           "type": "shield",
-          "restore": 20
+          "restore": 30
         }
       ],
-      "effectText": "Once, saves you from a fatal hit (restores 20).",
+      "effectText": "Once, saves you from a fatal hit (restores 30).",
       "blurb": "your {label}, gutted into a backup battery",
       "keywords": [
         "battery",
@@ -473,22 +478,25 @@
       "tags": [],
       "effects": [
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "fuel",
-          "amount": 5
+          "amount": 12,
+          "below": 35
         },
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "oxygen",
-          "amount": 5
+          "amount": 12,
+          "below": 35
         },
         {
-          "type": "refill",
+          "type": "reserve",
           "resource": "hull",
-          "amount": 5
+          "amount": 12,
+          "below": 35
         }
       ],
-      "effectText": "+5 fuel, +5 oxygen, +5 hull.",
+      "effectText": "Small reserves: +12 to any system that drops below 35 (once each).",
       "blurb": "a crate of standard-issue supplies",
       "keywords": []
     }

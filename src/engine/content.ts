@@ -25,6 +25,8 @@ export function loadBaseContent(dir: string): Content {
     start: stages.start,
     max: stages.max,
     lifeSupportPerStage: stages.lifeSupportPerStage,
+    variance: stages.variance ?? 0,
+    costScale: stages.costScale ?? 1,
     interludeChance: stages.interludeChance,
     stages: stages.stages,
     interludes: stages.interludes,

@@ -1,11 +1,11 @@
 // The game state machine. step() is pure: (state, input) -> (new state, outbound messages).
 import type {
-  Action, Content, EndingKind, EngineInput, GearCard, ItemInfo, Outbound, Rarity, Resource, RunState, StepEnv, StepResult,
+  Action, Content, Deltas, EndingKind, EngineInput, GearCard, ItemInfo, Outbound, Rarity, Resource, RunState, StepEnv, StepResult,
 } from './types.ts';
 import { nextRandom } from './rng.ts';
 import {
   applyDeltas, applyInstantEffects, combosCompletedBy, computeScore, currentEvent, deadCause, eligibleActions,
-  meets, modById, reductionPct, upgradeById, useShields, visibleActions,
+  meets, modById, reductionPct, upgradeById, useReserves, useShields, visibleActions,
 } from './rules.ts';
 import { capitalize, fmt, isPluralLabel, joinOr, withArticle } from './text.ts';
 
@@ -91,6 +91,20 @@ function pushFx(ctx: Ctx, fx: string, text: string): void {
   ctx.out.push({ t: 'fx', fx, text, label: ctx.c.copy[`fx_${fx}`] ?? fx });
 }
 
+/** ±variance multiplier for event deltas, drawn from the run's seeded RNG. */
+function jitter(ctx: Ctx): () => number {
+  const v = ctx.c.variance;
+  return () => (v > 0 ? 1 + (rand(ctx) * 2 - 1) * v : 1);
+}
+
+/** Event deltas with the difficulty knob applied to costs. */
+function scaled(ctx: Ctx, d: Deltas | undefined): Deltas | undefined {
+  if (!d || ctx.c.costScale === 1) return d;
+  const out: Deltas = {};
+  for (const [r, v] of Object.entries(d) as [Resource, number][]) out[r] = v < 0 ? v * ctx.c.costScale : v;
+  return out;
+}
+
 function say(ctx: Ctx, text: string): void {
   ctx.out.push({ t: 'text', text });
 }
@@ -171,7 +185,9 @@ function lockItem(ctx: Ctx, item: ItemInfo): void {
     effectText: mod.effectText, blurb: item.blurb, photoUrl: item.photoUrl,
   };
   ctx.out.push({ t: 'gear_card', card });
-  say(ctx, `${fmt(c.copy.itemLocked, { blurb: capitalize(item.blurb) })}\n${statusLine(ctx)}`);
+  // AI blurbs sometimes end with their own period; the template adds one.
+  const blurb = capitalize(item.blurb.trim().replace(/[。．.!！]+$/u, ''));
+  say(ctx, `${fmt(c.copy.itemLocked, { blurb })}\n${statusLine(ctx)}`);
   enterStage(ctx, 1);
 }
 
@@ -245,7 +261,7 @@ function resolveAction(ctx: Ctx, action: Action): void {
   }
   if (!outcome) return nudge(ctx);
   const text = t(ctx, outcome.text);
-  applyDeltas(s, c, outcome.delta);
+  applyDeltas(s, c, scaled(ctx, outcome.delta), jitter(ctx));
   applyDeltas(s, c, { oxygen: -c.lifeSupportPerStage });
   if (outcome.item === 'consumed' && s.item) s.item.status = 'consumed';
   s.history.push({ stage: s.stage, eventId: s.eventId!, actionId: action.id, success });
@@ -253,13 +269,23 @@ function resolveAction(ctx: Ctx, action: Action): void {
   say(ctx, `${text}\n${statusLine(ctx)}`);
   if (checkVitals(ctx)) return;
   if (stage.pickAfter !== undefined) return offerPick(ctx, stage.pickAfter);
+  afterStage(ctx);
+}
+
+/** Between stages: maybe a random mid-flight event, then the next stage (or the landing result). */
+function afterStage(ctx: Ctx): void {
+  const { s, c } = ctx;
   if (s.stage >= 5) return finish(ctx, 'success');
+  if (stageDef(ctx).interludeAfter && rand(ctx) < c.interludeChance && runInterlude(ctx)) return;
   enterStage(ctx, s.stage + 1);
 }
 
-/** Shields first; then end the run if anything is at zero. Returns true if the run ended. */
+/** Item reserves, then shields; then end the run if anything is at zero. Returns true if the run ended. */
 function checkVitals(ctx: Ctx): boolean {
   const { s, c } = ctx;
+  for (const r of useReserves(s, c)) {
+    say(ctx, t(ctx, c.copy.reserveUsed, { icon: r.gear.icon, name: r.gear.name, resource: c.copy[`resource_${r.resource}`], amount: r.amount }));
+  }
   for (const save of useShields(s, c)) {
     pushFx(ctx, 'shield', save.gear.name);
     const resource = c.copy[`resource_${save.resource}`];
@@ -337,10 +363,8 @@ function onPick(ctx: Ctx, id: string): void {
     say(ctx, t(ctx, c.copy.combo, { name: `${k.icon} ${k.name}`, text: t(ctx, k.text) }));
   }
   say(ctx, `${fmt(c.copy.pickGot, { name: u.name })}\n${statusLine(ctx)}`);
-  if (stageDef(ctx).interludeAfter && rand(ctx) < c.interludeChance) {
-    if (runInterlude(ctx)) return;
-  }
-  enterStage(ctx, s.stage + 1);
+  if (checkVitals(ctx)) return;
+  afterStage(ctx);
 }
 
 /** Random mid-flight event pushed by the game. Returns true if the run ended. */
@@ -349,7 +373,7 @@ function runInterlude(ctx: Ctx): boolean {
   const inter = c.interludes[Math.floor(rand(ctx) * c.interludes.length)];
   const guarded = inter.guard && meets(inter.guard.requires, s, c);
   const text = guarded ? inter.guard!.text : inter.text;
-  applyDeltas(s, c, guarded ? inter.guard!.delta : inter.delta);
+  applyDeltas(s, c, scaled(ctx, guarded ? inter.guard!.delta : inter.delta), jitter(ctx));
   say(ctx, `${t(ctx, text)}\n${statusLine(ctx)}`);
   return checkVitals(ctx);
 }

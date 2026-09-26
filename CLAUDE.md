@@ -28,7 +28,8 @@
 - 加入页：`<公开网址>/join`。玩家填昵称、手机号，选语言 → 服务器自动在 Photon 登记（用本机 CLI 登录的令牌，`~/.config/photon/credentials/production.json`，或环境变量 PHOTON_TOKEN）→ 显示二维码（SMSTO:专属号码:加入 1234）→ 手机发送后电脑页自动跳到他的舰桥。玩家发"再来一局"时舰桥自动跟到新一局。
 - 公开网址：启动时自动运行 `tools/cloudflared.exe`（Cloudflare 免费临时隧道，不用账号，已 gitignore），每次重启网址都会变，以控制页显示的为准。设 PUBLIC_URL 可改用固定网址，TUNNEL=0 关闭。只用手机的玩家开局时会在 iMessage 里收到舰桥链接。
 - 本地 demo（无需 Photon/Gemini）：`npm start`（Node ≥23.6 直接跑 .ts，或 `bun src/main.ts`），打开 http://localhost:3000/phone 用网页模拟 iMessage。
-- `npm test`：引擎、输入解析、去重、服务层测试。`npm run simulate`：各物品胜率平衡表。`npm run typecheck`：类型检查（需先 `npm install`）。
+- `npm test`：引擎、输入解析、去重、服务层测试。`npm run simulate`：各物品胜率平衡表（random 乱选 / smart 专挑物品选项 / thoughtful 看资源做决定的高手）。`node scripts/tune.ts`：扫描不同难度系数的通过率。
+- 调难度：只改 `content/stages.json` 里的 `costScale`（消耗倍率，现 1.8）、`lifeSupportPerStage`（每关氧气，现 10）、`variance`（浮动，现 0.25）、`interludeChance`（突发事件概率，现 0.55），改完跑 `node scripts/tune.ts` 看通过率。`npm run typecheck`：类型检查（需先 `npm install`）。
 - 代码规则：Node 原生 TS 只支持可擦除语法，禁止 enum / namespace / 构造函数参数属性；import 带 `.ts` 后缀。
 
 ## 架构规则（必须遵守）

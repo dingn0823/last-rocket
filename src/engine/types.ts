@@ -10,7 +10,9 @@ export type Effect =
   | { type: 'refill'; resource: Resource; amount: number }
   | { type: 'reduce'; resource: Resource; pct: number }
   | { type: 'swap'; from: Resource; to: Resource; cost: number; gain: number }
-  | { type: 'shield'; restore: number };
+  | { type: 'shield'; restore: number }
+  /** One-time automatic top-up the first time `resource` drops below `below`. */
+  | { type: 'reserve'; resource: Resource; amount: number; below: number };
 
 export type Rarity = 'common' | 'rare' | 'legendary';
 
@@ -116,6 +118,10 @@ export interface Content {
   start: Resources;
   max: number;
   lifeSupportPerStage: number;
+  /** Random spread applied to event deltas, e.g. 0.25 = ±25%. */
+  variance: number;
+  /** Difficulty knob: every event cost (negative delta) is multiplied by this. */
+  costScale: number;
   interludeChance: number;
   stages: Stage[];
   interludes: Interlude[];
