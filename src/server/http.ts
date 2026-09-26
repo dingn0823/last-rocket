@@ -82,6 +82,11 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
       // ---------- pages ----------
       if (get && path === '/') return serveFile(res, join(webDir, 'index.html'));
       if (get && path === '/join') return serveFile(res, join(webDir, 'join.html'));
+      // Links pasted from chats often drag punctuation along ("/join**；…"): send them to the real page.
+      if (get && path.startsWith('/join') && !path.startsWith('/join/')) {
+        res.writeHead(302, { location: '/join' });
+        return res.end();
+      }
       if (get && path === '/phone') return serveFile(res, join(webDir, 'phone.html'));
       if (get && /^\/bridge\/[\w-]+$/.test(path)) return serveFile(res, join(webDir, 'bridge.html'));
       if (get && path === '/host') {
