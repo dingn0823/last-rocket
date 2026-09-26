@@ -76,7 +76,10 @@
     "err_registration_unavailable": "Boarding is paused right now. Ask the team to help you join.",
     "err_no_line": "This phone couldn't be connected to iMessage. Try another phone.",
     "err_too_many": "Too many tries. Wait a few minutes and try again.",
-    "err_generic": "Something went wrong. Try again in a moment."
+    "err_generic": "Something went wrong. Try again in a moment.",
+    "phoneWillUse": "We will register {phone}. It must be exactly the number ticked in iPhone Settings › Messages › Send & Receive.",
+    "noReply": "Nothing yet? Usually the number doesn't match. You registered {phone}. On the iPhone, open Settings › Apps › Messages › Send & Receive: the ticked number must be exactly this one. A reply saying \"didn't recognize yours\" means the same thing.",
+    "fixNumber": "Fix my number"
   },
   "zh": {
     "shipAi": "飞船智能",
@@ -155,6 +158,9 @@
     "err_registration_unavailable": "登船暂时暂停，请找工作人员帮你加入。",
     "err_no_line": "这个号码暂时无法连接 iMessage，请换一部手机试试。",
     "err_too_many": "尝试次数太多了，请等几分钟再试。",
-    "err_generic": "出了点问题，请稍后再试。"
+    "err_generic": "出了点问题，请稍后再试。",
+    "phoneWillUse": "将登记 {phone}。它必须和 iPhone 设置 › 信息 › 发送与接收 里打勾的号码完全一样。",
+    "noReply": "还没反应？多半是号码对不上。你登记的是 {phone}。请在 iPhone 上打开 设置 › App › 信息 › 发送与接收：打勾的号码必须和它完全一样。如果收到 \"didn't recognize yours\" 的回复，也是这个原因。",
+    "fixNumber": "改号码"
   }
 }
