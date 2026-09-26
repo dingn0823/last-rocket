@@ -1,10 +1,8 @@
 // Photon Spectrum iMessage channel. Inbound iMessages → Inbound; engine Outbound → iMessage bubbles.
-import { randomBytes } from 'node:crypto';
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { Spectrum } from 'spectrum-ts';
 import { effect, imessage } from 'spectrum-ts/providers/imessage';
 import type { Outbound } from '../engine/types.ts';
+import { saveImage } from '../media/save.ts';
 import type { Channel, Inbound } from './types.ts';
 
 /** Full-screen iMessage effect per game fx. */
@@ -16,11 +14,6 @@ const FX_EFFECT: Record<string, keyof typeof imessage.effect.message> = {
   landing: 'confetti',
   drift: 'spotlight',
   crash: 'gentle',
-};
-
-const IMAGE_EXT: Record<string, string> = {
-  'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif',
-  'image/heic': '.heic', 'image/heif': '.heic', 'image/heic-sequence': '.heic',
 };
 
 export interface PhotonOptions {
@@ -96,10 +89,7 @@ export class PhotonChannel implements Channel {
       const mime = String(photo.mimeType).toLowerCase();
       this.stats.photos[mime] = (this.stats.photos[mime] ?? 0) + 1;
       console.log(`[photon] photo received: mime=${mime} name=${photo.name} size=${(buf.length / 1024).toFixed(0)}KB`);
-      const ext = IMAGE_EXT[mime] ?? '.bin';
-      const file = `${randomBytes(12).toString('base64url')}${ext}`;
-      writeFileSync(join(this.opts.mediaDir, file), buf);
-      image = { path: join(this.opts.mediaDir, file), url: `/media/${file}`, mime: mime === 'image/heif' ? 'image/heic' : mime };
+      image = await saveImage(this.opts.mediaDir, buf, mime === 'image/heif' ? 'image/heic' : mime);
     }
     void this.opts.onInbound({ channel: this.name, address, msgId: String(message.id), text: texts.join('\n') || undefined, image });
   }

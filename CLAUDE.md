@@ -100,5 +100,6 @@
 - [x] 中英双语（content/zh.json、content/ui.json）
 - [x] 接入 Photon：`src/channel/photon.ts`，真机 iPhone 完整玩通一局（中文）
 - [x] 接入 Gemini：照片识别、自由回答解析、结局叙述、超时和限流兜底都已实测
-- [ ] HEIC 转 JPEG（`src/server/http.ts` 里有 TODO）；存档目前是 JSON 文件，需要时换 SQLite
+- [x] HEIC 转 JPEG：`src/media/image.ts`（纯 JS 的 heic-decode + jpeg-js，Windows 可用；长边缩到 1280；同时最多处理 2 张），iMessage 和网页模拟器两个入口都会转换；转换失败就保留原图交给 Gemini
+- [ ] 存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

@@ -1,9 +1,10 @@
 // Web server: static pages, phone-simulator API, bridge API, SSE.
 import { randomBytes } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { extname, join, normalize as normPath, resolve, sep } from 'node:path';
 import type { GameService } from '../game/service.ts';
+import { saveImage } from '../media/save.ts';
 import type { Hub } from './sse.ts';
 
 const TYPES: Record<string, string> = {
@@ -95,10 +96,7 @@ export function createHttpServer(game: GameService, hub: Hub, webDir: string): S
           const m = body.image.match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/);
           const ext = m ? IMAGE_EXT[m[1]] : undefined;
           if (!m || !ext) return send(res, 400, { error: 'unsupported image' });
-          // TODO(P0 for Photon): convert HEIC to JPEG here so the bridge can display it.
-          const name = `${randomBytes(12).toString('base64url')}${ext}`;
-          writeFileSync(join(mediaDir, name), Buffer.from(m[2], 'base64'));
-          image = { path: join(mediaDir, name), url: `/media/${name}`, mime: m[1] === 'image/heif' ? 'image/heic' : m[1] };
+          image = await saveImage(mediaDir, Buffer.from(m[2], 'base64'), m[1] === 'image/heif' ? 'image/heic' : m[1]);
         }
         const text = typeof body.text === 'string' ? body.text.slice(0, 500) : undefined;
         if (!text && !image) return send(res, 400, { error: 'empty message' });

@@ -19,6 +19,8 @@
     "typescript": "^5.9.0"
   },
   "dependencies": {
+    "heic-decode": "^2.1.0",
+    "jpeg-js": "^0.4.4",
     "spectrum-ts": "^12.10.1"
   }
 }
