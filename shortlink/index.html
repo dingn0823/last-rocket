@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Last Rocket to the Moon</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #05060f; color: #e8ecff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { display: grid; place-items: center; text-align: center; }
+    .moon { font-size: 90px; filter: drop-shadow(0 0 30px #fff5c888); animation: float 3s ease-in-out infinite; }
+    @keyframes float { 50% { transform: translateY(-8px); } }
+    p { color: #8b93b8; }
+    a { color: #4ff3ff; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="moon">🌕</div>
+    <h1 id="t">Boarding the last rocket…</h1>
+    <p id="m">Finding the launch pad.</p>
+  </main>
+  <script>
+    // The game runs on a laptop behind a tunnel whose address changes on restart.
+    // url.json always holds the current address; the query string defeats GitHub Pages' cache.
+    const zh = (navigator.language || '').startsWith('zh');
+    const to = new URLSearchParams(location.search).get('to') || 'join';
+    fetch('url.json?t=' + Date.now(), { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j) => {
+        if (!j.url) throw new Error('no url');
+        location.replace(j.url.replace(/\/$/, '') + '/' + to.replace(/[^\w/-]/g, ''));
+      })
+      .catch(() => {
+        document.getElementById('t').textContent = zh ? '火箭暂时不在线' : 'The rocket is offline right now';
+        document.getElementById('m').textContent = zh ? '请稍后再试，或者找工作人员。' : 'Try again in a minute, or ask the team.';
+      });
+  </script>
+</body>
+</html>

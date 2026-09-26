@@ -12,6 +12,7 @@ import { loadAllContent } from './engine/content.ts';
 import { GameService } from './game/service.ts';
 import { createHttpServer } from './server/http.ts';
 import { Hub } from './server/hub.ts';
+import { updateShortlink } from './server/shortlink.ts';
 import { findCloudflared, startTunnel } from './server/tunnel.ts';
 import { Store } from './store/store.ts';
 
@@ -48,6 +49,7 @@ const game = new GameService({
   eventMode: process.env.EVENT_MODE === '1',
   publicUrl,
 });
+game.shortUrl = (process.env.SHORTLINK_URL ?? '').replace(/\/$/, '');
 
 // Join page registers players with Photon using this laptop's CLI login.
 const photonUsers = photon ? new PhotonUsers(process.env.PROJECT_ID!, Number(process.env.PHOTON_USER_LIMIT ?? 100)) : null;
@@ -74,6 +76,12 @@ if (!publicUrl && process.env.TUNNEL !== '0') {
     tunnel = startTunnel(bin, port, (url) => {
       game.publicUrl = url;
       console.log(`🌍 public URL: ${url}   (join page: ${url}/join)`);
+      // Fixed short link (GitHub Pages) follows the tunnel, so posters and slides never go stale.
+      if (process.env.SHORTLINK_REPO) {
+        void updateShortlink(process.env.SHORTLINK_REPO, url).then((ok) => {
+          if (ok) console.log(`🔗 short link now points here: ${game.shortUrl || process.env.SHORTLINK_REPO} (live within ~1 min)`);
+        });
+      }
     });
   } else {
     console.log('   public URL: off (put cloudflared.exe in tools/ or set PUBLIC_URL)');

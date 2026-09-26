@@ -33,8 +33,9 @@ async function refresh() {
     $('qr').src = qr;
     $('qrBig').src = qr;
     $('joinUrl').textContent = s.joinUrl;
-    $('joinUrlBig').textContent = s.joinUrl;
+    $('joinUrlBig').textContent = s.shortUrl ? s.shortUrl.replace(/^https?:\/\//, '') : s.joinUrl;
   }
+  $('shortUrl').textContent = s.shortUrl ? `Short link (type this): ${s.shortUrl.replace(/^https?:\/\//, '')}` : '';
   set('sTunnel', s.publicUrl ? 'online' : 'local only (starting…)', s.publicUrl ? 'ok' : 'warn');
   set('sPhoton', s.photon.ok ? `ready · ${s.photon.users}/${s.photon.limit} seats` : `OFF · ${s.photon.error ?? ''}`, s.photon.ok ? (s.photon.users >= s.photon.limit ? 'bad' : 'ok') : 'bad');
   set('sAi', s.ai, s.ai === 'on' ? 'ok' : s.ai === 'rate-limited' ? 'warn' : 'bad');

@@ -223,6 +223,7 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
           }));
         return send(res, 200, {
           publicUrl: game.publicUrl || null,
+          shortUrl: game.shortUrl || null,
           joinUrl: `${game.publicUrl || 'http://localhost:' + (req.socket.localPort ?? 3000)}/join`,
           ai: game.ai.gemini.enabled ? (game.ai.rateLimited ? 'rate-limited' : 'on') : 'off',
           eventMode: game.eventMode,

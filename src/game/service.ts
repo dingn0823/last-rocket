@@ -38,6 +38,8 @@ export class GameService {
   readonly hub: Hub;
   /** Public https base (Cloudflare tunnel); may be set after startup. Empty = local only. */
   publicUrl: string;
+  /** Fixed short link that redirects to publicUrl (GitHub Pages), for slides and posters. */
+  shortUrl = '';
   eventMode: boolean;
   readonly joins = new JoinRegistry();
   private channels = new Map<string, Channel>();
