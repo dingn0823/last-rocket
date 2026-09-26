@@ -103,9 +103,9 @@
   <div class="stars"></div>
   <div class="wrap">
     <div class="top">
-      <h1>LAST ROCKET <span>·</span> BRIDGE</h1>
-      <div class="stage" id="stage">Connecting…</div>
-      <div class="live" id="live"><i></i>LIVE</div>
+      <h1 data-ui="bridgeTitle">LAST ROCKET · BRIDGE</h1>
+      <div class="stage" id="stage" data-ui="connecting">Connecting…</div>
+      <div class="live" id="live"><i></i><span data-ui="live">LIVE</span></div>
     </div>
 
     <div class="panel route" id="route">
@@ -116,23 +116,23 @@
     </div>
 
     <div class="panel res">
-      <h2>SHIP SYSTEMS</h2>
-      <div class="bar fuel" data-r="fuel"><div class="lbl"><span>⛽ Fuel<span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
-      <div class="bar oxygen" data-r="oxygen"><div class="lbl"><span>🫁 Oxygen<span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
-      <div class="bar hull" data-r="hull"><div class="lbl"><span>🛠️ Hull<span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
+      <h2 data-ui="shipSystems">SHIP SYSTEMS</h2>
+      <div class="bar fuel" data-r="fuel"><div class="lbl"><span>⛽ <span data-ui="fuel">Fuel</span><span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
+      <div class="bar oxygen" data-r="oxygen"><div class="lbl"><span>🫁 <span data-ui="oxygen">Oxygen</span><span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
+      <div class="bar hull" data-r="hull"><div class="lbl"><span>🛠️ <span data-ui="hull">Hull</span><span class="red"></span></span><span class="val">–</span></div><div class="track"><div class="fill"></div></div></div>
     </div>
 
     <div class="panel cargo">
-      <h2>CARGO FROM EARTH</h2>
-      <div class="holo" id="holo"><div class="empty">AWAITING SCAN</div></div>
+      <h2 data-ui="cargo">CARGO FROM EARTH</h2>
+      <div class="holo" id="holo"></div>
       <div class="item-info" id="itemInfo"></div>
-      <h2>UPGRADES</h2>
+      <h2 data-ui="upgrades">UPGRADES</h2>
       <div class="slots" id="slots"></div>
       <div class="combos" id="combos"></div>
     </div>
 
     <div class="panel log">
-      <h2>COMMS</h2>
+      <h2 data-ui="comms">COMMS</h2>
       <div id="comms"></div>
     </div>
   </div>

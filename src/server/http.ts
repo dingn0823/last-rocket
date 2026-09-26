@@ -82,6 +82,7 @@ export function createHttpServer(game: GameService, hub: Hub, webDir: string): S
         return send(res, 200, {
           transcript: rec?.transcript ?? [],
           bridgeUrl: rec ? game.bridgeUrl(rec.bridgeToken) : null,
+          lang: rec?.state.lang ?? null,
         });
       }
       if (req.method === 'POST' && path === '/api/sim/message') {
@@ -119,6 +120,8 @@ export function createHttpServer(game: GameService, hub: Hub, webDir: string): S
         const recent = rec.transcript.filter((e) => e.dir === 'out').slice(-40).map((e) => e.msg);
         return send(res, 200, { snapshot: game.snapshotFor(rec), recent });
       }
+
+      if (req.method === 'GET' && path === '/api/ui') return serveFile(res, join(webDir, '..', 'content', 'ui.json'));
 
       if (req.method === 'GET' && path === '/api/health') {
         return send(res, 200, {

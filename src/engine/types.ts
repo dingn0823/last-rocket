@@ -1,4 +1,5 @@
 // Engine types. The engine is a pure state machine: no I/O, no Spectrum, no web.
+import type { Lang } from './text.ts';
 
 export type Resource = 'fuel' | 'oxygen' | 'hull';
 export const RESOURCES: Resource[] = ['fuel', 'oxygen', 'hull'];
@@ -106,6 +107,7 @@ export interface EndingText {
 export type EndingKind = 'success' | 'rescue' | 'failure';
 
 export interface Content {
+  lang: Lang;
   categories: Record<string, string>;
   mods: Mod[];
   upgrades: Upgrade[];
@@ -121,7 +123,7 @@ export interface Content {
     causes: Record<Resource, string>;
     score: { success: number; rescue: number; failure: number; perCombo: number; itemKept: number };
   };
-  copy: Record<string, string> & { intro: string[] };
+  copy: Record<string, string> & { intro: string[]; listSep: string; or2: string; orLast: string };
 }
 
 // ---------- run state ----------
@@ -134,6 +136,8 @@ export interface ItemInfo {
   label: string;
   /** One-line personal modification note, e.g. "your scarf, stitched into an impact pad". */
   blurb: string;
+  /** English grammar: label is plural ("keys"). Guessed from the label when absent. */
+  plural?: boolean;
   photoUrl?: string;
 }
 
@@ -146,6 +150,8 @@ export interface HistoryEntry {
 
 export interface RunState {
   runId: string;
+  /** Language of this run, chosen by the first message ("join" / "加入"). */
+  lang: Lang;
   version: number;
   rng: number;
   phase: Phase;

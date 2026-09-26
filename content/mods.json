@@ -12,121 +12,458 @@
       "name": "Emergency Air Tank",
       "category": "container",
       "icon": "🫙",
-      "tags": ["storage"],
-      "effects": [{ "type": "refill", "resource": "oxygen", "amount": 15 }],
+      "tags": [
+        "storage"
+      ],
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "oxygen",
+          "amount": 15
+        }
+      ],
       "effectText": "+15 oxygen now. Stores air for the long haul.",
       "blurb": "your {label}, pressure-sealed into an emergency air tank",
-      "keywords": ["water bottle", "bottle", "thermos", "flask", "jar", "tumbler", "canteen", "balloon", "backpack", "bag", "lunchbox", "box", "container"]
+      "keywords": [
+        "water bottle",
+        "bottle",
+        "thermos",
+        "flask",
+        "hydro flask",
+        "jar",
+        "tumbler",
+        "canteen",
+        "balloon",
+        "backpack",
+        "bag",
+        "lunchbox",
+        "lunch box",
+        "box",
+        "container",
+        "tupperware",
+        "bucket",
+        "tin",
+        "stanley",
+        "yeti"
+      ]
     },
     {
       "id": "fuel_side_pod",
       "name": "Fuel Side Pod",
       "category": "container",
       "icon": "🛢️",
-      "tags": ["storage"],
-      "effects": [{ "type": "refill", "resource": "fuel", "amount": 15 }],
+      "tags": [
+        "storage"
+      ],
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "fuel",
+          "amount": 15
+        }
+      ],
       "effectText": "+15 fuel now. Extra tank bolted to the hull.",
       "blurb": "your {label}, welded to the hull as a fuel side pod",
-      "keywords": ["mug", "cup", "can", "soda", "coffee", "perfume", "spray", "lighter", "wallet", "purse", "pencil case", "case"]
+      "keywords": [
+        "coke",
+        "cola",
+        "pepsi",
+        "sprite",
+        "soda",
+        "soda can",
+        "can",
+        "energy drink",
+        "red bull",
+        "monster",
+        "mug",
+        "cup",
+        "coffee",
+        "coffee cup",
+        "perfume",
+        "spray",
+        "lighter",
+        "wallet",
+        "purse",
+        "pencil case",
+        "case",
+        "gas can",
+        "oil"
+      ]
     },
     {
       "id": "water_recycler",
       "name": "Water Recycler",
       "category": "container",
       "icon": "💧",
-      "tags": ["storage"],
-      "effects": [{ "type": "reduce", "resource": "oxygen", "pct": 20 }],
+      "tags": [
+        "storage"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "oxygen",
+          "pct": 20
+        }
+      ],
       "effectText": "Oxygen costs -20%. Splits recycled water into air.",
       "blurb": "your {label}, plumbed into a water recycler",
-      "keywords": ["plant", "cactus", "flower", "sponge", "filter", "straw", "kettle", "bowl", "tea", "water"]
+      "keywords": [
+        "plant",
+        "cactus",
+        "succulent",
+        "flower",
+        "flowers",
+        "sponge",
+        "filter",
+        "straw",
+        "kettle",
+        "bowl",
+        "tea",
+        "water",
+        "juice",
+        "milk",
+        "glass",
+        "pot",
+        "vase",
+        "fish tank"
+      ]
     },
     {
       "id": "impact_pad",
       "name": "Impact Pad",
       "category": "soft",
       "icon": "🧶",
-      "tags": ["cushion"],
-      "effects": [{ "type": "reduce", "resource": "hull", "pct": 20 }],
+      "tags": [
+        "cushion"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "hull",
+          "pct": 20
+        }
+      ],
       "effectText": "Hull damage -20%. Soaks up hard hits.",
       "blurb": "your {label}, stitched into an impact pad",
-      "keywords": ["scarf", "pillow", "cushion", "hoodie", "sweater", "plush", "teddy", "stuffed animal", "stuffed", "sock", "socks", "glove", "gloves", "hat", "beanie", "towel", "shirt", "t-shirt", "jacket", "shoe", "shoes", "sneaker"]
+      "keywords": [
+        "scarf",
+        "pillow",
+        "cushion",
+        "hoodie",
+        "sweater",
+        "sweatshirt",
+        "plush",
+        "plushie",
+        "teddy",
+        "teddy bear",
+        "stuffed animal",
+        "stuffed",
+        "doll",
+        "sock",
+        "socks",
+        "glove",
+        "gloves",
+        "hat",
+        "cap",
+        "beanie",
+        "towel",
+        "shirt",
+        "t-shirt",
+        "tee",
+        "jacket",
+        "shoe",
+        "shoes",
+        "sneaker",
+        "sneakers",
+        "slippers",
+        "pants",
+        "jeans",
+        "shorts",
+        "headband"
+      ]
     },
     {
       "id": "thermal_blanket",
       "name": "Thermal Blanket",
       "category": "soft",
       "icon": "🧣",
-      "tags": ["cushion", "insulation"],
-      "effects": [{ "type": "reduce", "resource": "hull", "pct": 10 }],
+      "tags": [
+        "cushion",
+        "insulation"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "hull",
+          "pct": 10
+        }
+      ],
       "effectText": "Hull damage -10%. Blocks solar radiation.",
       "blurb": "your {label}, lined with foil into a thermal blanket",
-      "keywords": ["blanket", "foil", "coat", "quilt", "sleeping bag", "mittens", "fleece", "robe"]
+      "keywords": [
+        "blanket",
+        "foil",
+        "coat",
+        "parka",
+        "puffer",
+        "down jacket",
+        "quilt",
+        "duvet",
+        "comforter",
+        "sleeping bag",
+        "mittens",
+        "fleece",
+        "robe",
+        "bathrobe"
+      ]
     },
     {
       "id": "landing_airbag",
       "name": "Landing Airbag",
       "category": "soft",
       "icon": "🎈",
-      "tags": ["cushion", "airbag"],
-      "effects": [{ "type": "refill", "resource": "hull", "amount": 8 }],
+      "tags": [
+        "cushion",
+        "airbag"
+      ],
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "hull",
+          "amount": 8
+        }
+      ],
       "effectText": "+8 hull now. Unlocks a soft landing.",
       "blurb": "your {label}, folded into a landing airbag",
-      "keywords": ["umbrella", "tote", "kite", "flag", "sheet", "tarp", "bandana", "handkerchief", "dress", "skirt", "raincoat", "poncho"]
+      "keywords": [
+        "umbrella",
+        "tote",
+        "tote bag",
+        "kite",
+        "flag",
+        "sheet",
+        "bedsheet",
+        "tarp",
+        "bandana",
+        "handkerchief",
+        "dress",
+        "skirt",
+        "raincoat",
+        "poncho",
+        "bubble wrap",
+        "pool float",
+        "yoga mat",
+        "air mattress"
+      ]
     },
     {
       "id": "hatch_wrench",
       "name": "Hatch Repair Wrench",
       "category": "tool",
       "icon": "🔧",
-      "tags": ["repair"],
-      "effects": [{ "type": "refill", "resource": "hull", "amount": 15 }],
+      "tags": [
+        "repair"
+      ],
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "hull",
+          "amount": 15
+        }
+      ],
       "effectText": "+15 hull now. Fixes what breaks.",
       "blurb": "your {label}, ground down into a hatch repair wrench",
-      "keywords": ["wrench", "keys", "key", "keychain", "screwdriver", "hammer", "pliers", "spoon", "fork", "chopsticks", "ruler", "multitool", "scissors", "spatula"]
+      "keywords": [
+        "wrench",
+        "spanner",
+        "keys",
+        "key",
+        "keychain",
+        "screwdriver",
+        "hammer",
+        "pliers",
+        "spoon",
+        "fork",
+        "chopsticks",
+        "ruler",
+        "multitool",
+        "swiss army knife",
+        "knife",
+        "scissors",
+        "spatula",
+        "tongs",
+        "can opener",
+        "bottle opener",
+        "nail clipper",
+        "nail clippers",
+        "tweezers",
+        "allen key",
+        "drill"
+      ]
     },
     {
       "id": "weld_pen",
       "name": "Weld Pen",
       "category": "tool",
       "icon": "🖊️",
-      "tags": ["repair"],
-      "effects": [{ "type": "reduce", "resource": "hull", "pct": 15 }],
+      "tags": [
+        "repair"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "hull",
+          "pct": 15
+        }
+      ],
       "effectText": "Hull damage -15%. Seals cracks on the fly.",
       "blurb": "your {label}, wired into a plasma weld pen",
-      "keywords": ["pen", "pencil", "marker", "stylus", "glue", "tape", "needle", "soldering", "crayon", "paintbrush", "brush"]
+      "keywords": [
+        "pen",
+        "pencil",
+        "marker",
+        "highlighter",
+        "stylus",
+        "apple pencil",
+        "glue",
+        "glue stick",
+        "tape",
+        "duct tape",
+        "needle",
+        "sewing kit",
+        "soldering iron",
+        "crayon",
+        "paintbrush",
+        "brush",
+        "toothbrush",
+        "lipstick",
+        "eyeliner",
+        "chalk"
+      ]
     },
     {
       "id": "nav_antenna",
       "name": "Nav Antenna",
       "category": "tool",
       "icon": "📡",
-      "tags": ["repair", "signal"],
-      "effects": [{ "type": "reduce", "resource": "fuel", "pct": 15 }],
+      "tags": [
+        "repair",
+        "signal"
+      ],
+      "effects": [
+        {
+          "type": "reduce",
+          "resource": "fuel",
+          "pct": 15
+        }
+      ],
       "effectText": "Fuel costs -15%. Finds shorter routes.",
       "blurb": "your {label}, bent into a navigation antenna",
-      "keywords": ["compass", "map", "hanger", "coat hanger", "wire", "antenna", "telescope", "binoculars", "globe"]
+      "keywords": [
+        "compass",
+        "map",
+        "hanger",
+        "coat hanger",
+        "wire",
+        "antenna",
+        "telescope",
+        "binoculars",
+        "globe",
+        "magnifying glass",
+        "paperclip",
+        "paper clip"
+      ]
     },
     {
       "id": "signal_booster",
       "name": "Signal Booster",
       "category": "electronic",
       "icon": "📶",
-      "tags": ["signal"],
-      "effects": [{ "type": "refill", "resource": "fuel", "amount": 10 }],
+      "tags": [
+        "signal"
+      ],
+      "effects": [
+        {
+          "type": "refill",
+          "resource": "fuel",
+          "amount": 10
+        }
+      ],
       "effectText": "+10 fuel now. Talks to anything with a radio.",
       "blurb": "your {label}, hacked into a long-range signal booster",
-      "keywords": ["phone", "iphone", "smartphone", "headphones", "earbuds", "airpods", "radio", "speaker", "router", "remote", "watch", "smartwatch", "camera", "controller", "mouse", "keyboard"]
+      "keywords": [
+        "phone",
+        "iphone",
+        "cell phone",
+        "smartphone",
+        "android",
+        "headphones",
+        "headset",
+        "earbuds",
+        "airpods",
+        "radio",
+        "speaker",
+        "bluetooth speaker",
+        "router",
+        "remote",
+        "tv remote",
+        "watch",
+        "smartwatch",
+        "apple watch",
+        "camera",
+        "controller",
+        "game controller",
+        "mouse",
+        "keyboard",
+        "walkie talkie",
+        "microphone",
+        "mic"
+      ]
     },
     {
       "id": "backup_battery",
       "name": "Backup Battery",
       "category": "electronic",
       "icon": "🔋",
-      "tags": ["power"],
-      "effects": [{ "type": "shield", "restore": 20 }],
+      "tags": [
+        "power"
+      ],
+      "effects": [
+        {
+          "type": "shield",
+          "restore": 20
+        }
+      ],
       "effectText": "Once, saves you from a fatal hit (restores 20).",
       "blurb": "your {label}, gutted into a backup battery",
-      "keywords": ["battery", "power bank", "charger", "laptop", "cable", "flashlight", "calculator", "tablet", "ipad", "kindle", "switch", "gameboy", "console"]
+      "keywords": [
+        "battery",
+        "batteries",
+        "power bank",
+        "charger",
+        "charging cable",
+        "cable",
+        "laptop",
+        "macbook",
+        "computer",
+        "flashlight",
+        "torch",
+        "calculator",
+        "tablet",
+        "ipad",
+        "kindle",
+        "e-reader",
+        "switch",
+        "nintendo switch",
+        "gameboy",
+        "console",
+        "ps5",
+        "xbox",
+        "usb",
+        "usb drive",
+        "hard drive",
+        "adapter"
+      ]
     },
     {
       "id": "standard_supplies",
@@ -135,9 +472,21 @@
       "icon": "📦",
       "tags": [],
       "effects": [
-        { "type": "refill", "resource": "fuel", "amount": 5 },
-        { "type": "refill", "resource": "oxygen", "amount": 5 },
-        { "type": "refill", "resource": "hull", "amount": 5 }
+        {
+          "type": "refill",
+          "resource": "fuel",
+          "amount": 5
+        },
+        {
+          "type": "refill",
+          "resource": "oxygen",
+          "amount": 5
+        },
+        {
+          "type": "refill",
+          "resource": "hull",
+          "amount": 5
+        }
       ],
       "effectText": "+5 fuel, +5 oxygen, +5 hull.",
       "blurb": "a crate of standard-issue supplies",

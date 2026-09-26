@@ -18,5 +18,5 @@ export interface Channel {
   /** Optional "typing..." indicator. */
   typing?(address: string): Promise<void>;
   /** Optional hook when a new run (and bridge link) is created for this player. */
-  runStarted?(address: string, info: { runId: string; bridgeUrl: string }): Promise<void>;
+  runStarted?(address: string, info: { runId: string; bridgeUrl: string; lang: string }): Promise<void>;
 }

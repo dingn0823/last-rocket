@@ -7,7 +7,7 @@ import {
   applyDeltas, applyInstantEffects, combosCompletedBy, computeScore, currentEvent, deadCause, eligibleActions,
   meets, modById, reductionPct, upgradeById, useShields, visibleActions,
 } from './rules.ts';
-import { capitalize, fmt, joinOr, withArticle } from './text.ts';
+import { capitalize, fmt, isPluralLabel, joinOr, withArticle } from './text.ts';
 
 interface Ctx {
   s: RunState;
@@ -18,7 +18,7 @@ interface Ctx {
 
 export function newRun(runId: string, seed: number, c: Content, now: number): RunState {
   return {
-    runId, version: 0, rng: seed, phase: 'new', stage: 0, res: { ...c.start },
+    runId, lang: c.lang, version: 0, rng: seed, phase: 'new', stage: 0, res: { ...c.start },
     item: null, pendingItem: null, retakesUsed: 0, upgrades: [], combos: [], shieldsUsed: [],
     offer: null, pickIndex: 0, eventId: null, clarifyCount: 0, numberedShown: false,
     history: [], ending: null, processed: [], createdAt: now, updatedAt: now,
@@ -92,10 +92,17 @@ function say(ctx: Ctx, text: string): void {
 }
 
 function vars(ctx: Ctx): Record<string, string> {
+  const { c } = ctx;
   const item = ctx.s.item ?? ctx.s.pendingItem;
+  const plural = c.lang === 'en' && !!item && (item.plural ?? isPluralLabel(item.label));
   return {
-    item: item?.label ?? 'cargo',
-    mod: item ? modById(ctx.c, item.modId).name : 'gear',
+    item: item?.label ?? c.copy.defaultItem,
+    mod: item ? modById(c, item.modId).name : c.copy.defaultMod,
+    // English agreement helpers; Chinese templates simply don't use them.
+    is: plural ? 'are' : 'is',
+    it: plural ? 'they' : 'it',
+    obj: plural ? 'them' : 'it',
+    thisIs: plural ? 'these are' : 'this is',
   };
 }
 
@@ -122,10 +129,10 @@ function onItemScanned(ctx: Ctx, item: ItemInfo): void {
     if (s.retakesUsed >= 1) return lockStandard(ctx, ctx.c.copy.itemRetakeUsed);
     s.retakesUsed += 1;
   }
-  s.pendingItem = item;
+  s.pendingItem = { ...item, plural: item.plural ?? (ctx.c.lang === 'en' && isPluralLabel(item.label)) };
   s.phase = 'confirm_item';
   const mod = modById(ctx.c, item.modId);
-  say(ctx, fmt(ctx.c.copy.itemGuess, { label: withArticle(item.label), modA: withArticle(mod.name), effect: mod.effectText }));
+  say(ctx, t(ctx, ctx.c.copy.itemGuess, { label: withArticle(item.label, ctx.c.lang), modA: withArticle(mod.name, ctx.c.lang), effect: mod.effectText }));
   say(ctx, ctx.c.copy.itemConfirmAsk);
 }
 
@@ -146,7 +153,7 @@ function retake(ctx: Ctx): void {
 function lockStandard(ctx: Ctx, message?: string): void {
   if (message) say(ctx, message);
   const mod = modById(ctx.c, 'standard_supplies');
-  lockItem(ctx, { modId: mod.id, label: 'standard supplies', blurb: mod.blurb });
+  lockItem(ctx, { modId: mod.id, label: ctx.c.copy.standardLabel, blurb: mod.blurb, plural: ctx.c.lang === 'en' });
 }
 
 function lockItem(ctx: Ctx, item: ItemInfo): void {
@@ -177,7 +184,7 @@ function enterStage(ctx: Ctx, n: number): void {
   s.eventId = event.id;
   if (stage.opening) say(ctx, stage.opening);
   ctx.out.push({ t: 'scene', stage: n, title: fmt(c.copy.stageHeader, { n, name: stage.name }), icon: event.scene });
-  say(ctx, t(ctx, event.intro.join(' ')));
+  say(ctx, t(ctx, event.intro.join(c.copy.sentenceSep)));
   prompt(ctx);
 }
 
@@ -189,7 +196,7 @@ function numberedList(ctx: Ctx, actions: Action[]): string {
 function hintList(ctx: Ctx): string {
   const hints = visibleActions(ctx.s, ctx.c).map((a) => t(ctx, a.hint));
   if (eligibleActions(ctx.s, ctx.c).some((a) => a.hidden)) hints.push(t(ctx, ctx.c.copy.gearHint));
-  return joinOr(hints, ctx.c.copy.or);
+  return joinOr(hints, ctx.c.copy);
 }
 
 function prompt(ctx: Ctx): void {
@@ -205,7 +212,10 @@ function onUnclear(ctx: Ctx, candidates: string[], multi: boolean): void {
   const { s, c } = ctx;
   const visible = visibleActions(s, c);
   if (s.numberedShown || ctx.env.numbered || stageDef(ctx).mode === 'numbered') {
-    say(ctx, `${c.copy.numberedAsk}\n${numberedList(ctx, visible)}`);
+    // Already showed the list: a short friendly reminder, not the same wall of text again.
+    if (s.numberedShown || s.clarifyCount > 0) say(ctx, fmt(c.copy.nudgeNumbered, { max: visible.length }));
+    else say(ctx, `${c.copy.numberedAsk}\n${numberedList(ctx, visible)}`);
+    s.clarifyCount += 1;
     return;
   }
   if (s.clarifyCount === 0) {
@@ -248,7 +258,7 @@ function checkVitals(ctx: Ctx): boolean {
   const { s, c } = ctx;
   for (const save of useShields(s, c)) {
     ctx.out.push({ t: 'fx', fx: 'shield', text: save.gear.name });
-    const resource = save.resource === 'oxygen' ? 'O₂' : 'Hull';
+    const resource = c.copy[`resource_${save.resource}`];
     say(ctx, fmt(c.copy.shieldSaved, { name: save.gear.name, resource, amount: save.amount }));
   }
   const cause = deadCause(s);
@@ -291,8 +301,8 @@ function offerText(ctx: Ctx): string {
   const { s, c } = ctx;
   const lines = (s.offer ?? []).map((id, i) => {
     const u = upgradeById(c, id);
-    const combo = combosCompletedBy(s, c, id).length > 0 ? ' ⚡ COMBO' : '';
-    return `${i + 1}. ${u.icon} ${u.name} (${u.rarity})${combo}: ${u.effectText}`;
+    const combo = combosCompletedBy(s, c, id).length > 0 ? c.copy.comboTag : '';
+    return fmt(c.copy.pickLine, { n: i + 1, icon: u.icon, name: u.name, rarity: c.copy[`rarity_${u.rarity}`], combo, effect: u.effectText });
   });
   return `${c.picks[s.pickIndex].intro}\n${lines.join('\n')}\n${c.copy.pickAsk}`;
 }
@@ -313,7 +323,7 @@ function onPick(ctx: Ctx, id: string): void {
   if (u.rarity === 'legendary') ctx.out.push({ t: 'fx', fx: 'legendary', text: u.name });
   ctx.out.push({
     t: 'gear_card',
-    card: { kind: 'upgrade', id: u.id, name: u.name, icon: u.icon, subtitle: capitalize(u.rarity), effectText: u.effectText, rarity: u.rarity },
+    card: { kind: 'upgrade', id: u.id, name: u.name, icon: u.icon, subtitle: capitalize(c.copy[`rarity_${u.rarity}`]), effectText: u.effectText, rarity: u.rarity },
   });
   for (const comboId of combosCompletedBy(s, c)) {
     const k = c.combos.find((x) => x.id === comboId)!;
@@ -351,7 +361,7 @@ function finish(ctx: Ctx, kind: EndingKind, cause?: Resource): void {
   s.ending = { kind, cause, score };
   ctx.out.push({ t: 'fx', fx: e.fx, text: e.title });
   const causeText = cause ? c.endings.causes[cause] : '';
-  say(ctx, t(ctx, e.lines.join(' '), { cause: causeText }).trim());
+  say(ctx, t(ctx, e.lines.join(c.copy.sentenceSep), { cause: causeText }).trim());
   if (s.item) say(ctx, t(ctx, s.item.status === 'kept' ? e.kept : e.consumed));
   const itemMod = s.item ? modById(c, s.item.modId) : null;
   ctx.out.push({
@@ -379,16 +389,17 @@ function nudge(ctx: Ctx): void {
       say(ctx, c.copy.awaitItemReminder);
       break;
     case 'confirm_item':
-      say(ctx, c.copy.itemConfirmAsk);
+      say(ctx, c.copy.nudgeConfirm);
       break;
     case 'scan_failed':
-      say(ctx, c.copy.scanFailedAsk);
+      say(ctx, c.copy.nudgeScanFailed);
       break;
     case 'action':
-      prompt(ctx);
+      if (s.numberedShown || ctx.env.numbered || stageDef(ctx).mode === 'numbered') say(ctx, fmt(c.copy.nudgeNumbered, { max: visibleActions(s, c).length }));
+      else prompt(ctx);
       break;
     case 'pick':
-      say(ctx, offerText(ctx));
+      say(ctx, c.copy.nudgePick);
       break;
     case 'ended':
       say(ctx, c.copy.ended);
@@ -400,11 +411,13 @@ function nudge(ctx: Ctx): void {
 
 /** Candidate actions for AI parsing: everything eligible, including hidden ones. */
 export function actionCandidates(s: RunState, c: Content): { id: string; description: string }[] {
-  const v = { item: s.item?.label ?? 'cargo', mod: s.item ? modById(c, s.item.modId).name : 'gear' };
+  const v = { item: s.item?.label ?? c.copy.defaultItem, mod: s.item ? modById(c, s.item.modId).name : c.copy.defaultMod };
   return eligibleActions(s, c).map((a) => ({ id: a.id, description: fmt(a.label, v) }));
 }
 
 export interface Snapshot {
+  lang: RunState['lang'];
+  stageNames: string[];
   phase: RunState['phase'];
   stage: number;
   stageName: string;
@@ -426,9 +439,11 @@ export function snapshot(s: RunState, c: Content): Snapshot {
   const pendingMod = s.pendingItem ? modById(c, s.pendingItem.modId) : null;
   const red = (r: Resource) => reductionPct(s, c, r);
   return {
+    lang: s.lang,
+    stageNames: c.stages.map((x) => x.name),
     phase: s.phase,
     stage: s.stage,
-    stageName: stage?.name ?? 'Launch Pad',
+    stageName: stage?.name ?? '',
     eventTitle: currentEvent(s, c)?.title ?? null,
     res: s.res,
     max: c.max,

@@ -6,8 +6,8 @@
       "Dust settles. Silence. Then: the Moon, under your boots.",
       "You made it. One of the last humans alive, and one of the first to call the Moon home."
     ],
-    "kept": "Your {item} is the first thing from Earth to touch the lunar surface.",
-    "consumed": "Your {item} didn't make it. It's the reason you did."
+    "kept": "Your {item} {is} the first thing from Earth to touch the lunar surface.",
+    "consumed": "Your {item} didn't make it, but {it} {is} the reason you did."
   },
   "rescue": {
     "title": "ADRIFT",
@@ -26,7 +26,7 @@
       "{cause}",
       "The last rocket goes dark somewhere short of the Moon."
     ],
-    "kept": "Somewhere out there, your {item} drifts on forever.",
+    "kept": "Somewhere out there, your {item} will drift forever.",
     "consumed": "You gave up your {item} for this ship. It almost worked."
   },
   "causes": {

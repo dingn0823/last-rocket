@@ -1,5 +1,5 @@
 // iMessage simulator: talks to the same game service a real Photon channel would.
-import { escapeHtml, playFx } from './fx.js';
+import { escapeHtml, loadUi, playFx, setLang, ui } from './fx.js';
 
 const log = document.getElementById('log');
 const form = document.getElementById('form');
@@ -67,11 +67,16 @@ function renderOut(m, live) {
       <h3>${escapeHtml(r.title)}</h3>
       <div class="score">${r.score}</div>
       <div class="res"><span>⛽ ${r.res.fuel}</span><span>🫁 ${r.res.oxygen}</span><span>🛠️ ${r.res.hull}</span></div>
-      ${r.item ? `<div class="line">${escapeHtml(r.item.icon)} ${escapeHtml(r.item.label)} → ${escapeHtml(r.item.name)} · <b>${r.item.status === 'kept' ? 'KEPT' : 'SACRIFICED'}</b></div>` : ''}
-      ${r.upgrades.length ? `<div class="line">Gear: ${r.upgrades.map((u) => `${escapeHtml(u.icon)} ${escapeHtml(u.name)}`).join(', ')}</div>` : ''}
-      ${r.combos.length ? `<div class="line">Combos: ${r.combos.map((u) => `${escapeHtml(u.icon)} ${escapeHtml(u.name)}`).join(', ')}</div>` : ''}`;
+      ${r.item ? `<div class="line">${escapeHtml(r.item.icon)} ${sameName(r.item) ? '' : `${escapeHtml(r.item.label)} → `}${escapeHtml(r.item.name)} · <b>${r.item.status === 'kept' ? ui('kept') : ui('sacrificed')}</b></div>` : ''}
+      ${r.upgrades.length ? `<div class="line">${ui('gear')}: ${r.upgrades.map((u) => `${escapeHtml(u.icon)} ${escapeHtml(u.name)}`).join(', ')}</div>` : ''}
+      ${r.combos.length ? `<div class="line">${ui('combos')}: ${r.combos.map((u) => `${escapeHtml(u.icon)} ${escapeHtml(u.name)}`).join(', ')}</div>` : ''}`;
     return row('in', el);
   }
+}
+
+// Standard Supplies: label and gear name are the same thing, show it once.
+function sameName(item) {
+  return item.label.trim().toLowerCase() === item.name.trim().toLowerCase();
 }
 
 function renderIn(m) {
@@ -132,7 +137,7 @@ async function sendMessage(text, image) {
   } catch (e) {
     const s = document.createElement('div');
     s.className = 'sys';
-    s.textContent = 'Not delivered. Check the server.';
+    s.textContent = ui('notDelivered');
     log.appendChild(s);
   }
 }
@@ -141,10 +146,30 @@ function setBridge(url) {
   if (url) bridgeLink.href = url;
 }
 
+function applyLang(l) {
+  setLang(l);
+  input.placeholder = ui('placeholder');
+}
+
+/** First visit: like scanning the QR code. The first message also picks the language. */
+function showStart() {
+  const box = document.createElement('div');
+  box.className = 'start';
+  box.innerHTML = `<span>${escapeHtml(ui('startHint'))}</span><div><button data-t="join">join</button><button data-t="加入">加入</button></div>`;
+  box.querySelectorAll('button').forEach((b) => (b.onclick = () => {
+    box.remove();
+    sendMessage(b.dataset.t);
+  }));
+  log.appendChild(box);
+}
+
 async function boot() {
+  await loadUi();
+  applyLang('en');
   if (address) {
     try {
       const h = await api(`/api/sim/history?address=${encodeURIComponent(address)}`);
+      if (h.lang) applyLang(h.lang);
       for (const e of h.transcript) e.dir === 'in' ? renderIn(e.msg) : renderOut(e.msg, false);
       setBridge(h.bridgeUrl);
     } catch {
@@ -161,11 +186,12 @@ async function boot() {
     drain();
   });
   es.addEventListener('typing', () => { if (!draining) showTyping(true); });
-  es.addEventListener('run', (ev) => setBridge(JSON.parse(ev.data).bridgeUrl));
-  es.addEventListener('open', () => {
-    // First visit: like scanning the QR, which pre-fills "join".
-    if (!log.querySelector('.row')) sendMessage('join');
-  }, { once: true });
+  es.addEventListener('run', (ev) => {
+    const info = JSON.parse(ev.data);
+    setBridge(info.bridgeUrl);
+    applyLang(info.lang);
+  });
+  if (!log.querySelector('.row')) showStart();
 }
 
 // ---------- photos: downscale to JPEG before upload ----------
@@ -201,7 +227,7 @@ fileInput.onchange = async () => {
     preview.style.display = 'flex';
     input.focus();
   } catch {
-    alert("Couldn't read that image. Try a JPEG or PNG.");
+    alert(ui('badImage'));
   }
 };
 document.getElementById('clearPhoto').onclick = () => {
@@ -220,7 +246,7 @@ form.onsubmit = (e) => {
 };
 
 document.getElementById('reset').onclick = () => {
-  if (!confirm('Start over as a brand-new player?')) return;
+  if (!confirm(ui('newConfirm'))) return;
   localStorage.removeItem('lr_address');
   location.reload();
 };

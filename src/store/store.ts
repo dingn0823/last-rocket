@@ -16,6 +16,8 @@ export interface RunRecord {
   channel: string;
   bridgeToken: string;
   transcript: TranscriptEntry[];
+  /** Gemini requests made during this run. */
+  aiCalls?: number;
 }
 
 export interface Player {

@@ -19,7 +19,7 @@ export class SimChannel implements Channel {
     this.hub.publish(`sim:${address}`, 'typing', {});
   }
 
-  async runStarted(address: string, info: { runId: string; bridgeUrl: string }): Promise<void> {
+  async runStarted(address: string, info: { runId: string; bridgeUrl: string; lang: string }): Promise<void> {
     this.hub.publish(`sim:${address}`, 'run', info);
   }
 }

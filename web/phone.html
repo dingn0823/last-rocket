@@ -72,6 +72,9 @@
     .report.failure h3 { color: var(--danger); } .report.success h3 { color: #fff6d8; } .report.rescue h3 { color: var(--oxygen); }
 
     .sys { align-self: center; font-size: 11px; color: #8e8e93; margin: 6px 0; }
+    .start { align-self: center; text-align: center; margin: 24px 0; color: #8e8e93; font-size: 13px; }
+    .start div { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+    .start button { border: 0; border-radius: 18px; padding: 8px 18px; background: var(--blue); color: #fff; font-size: 15px; }
 
     footer { padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); background: rgba(28,28,30,.92); border-top: 1px solid #2c2c2e; }
     #preview { display: none; align-items: center; gap: 8px; padding: 0 4px 8px; font-size: 12px; color: #8e8e93; }
@@ -88,17 +91,17 @@
   <div class="stars"></div>
   <div class="phone">
     <header>
-      <button id="reset" title="Start over as a new player">↺ New</button>
+      <button id="reset" data-ui="newBtn">↺ New</button>
       <div class="who">
         <div class="avatar">🚀</div>
-        <div class="name">Ship AI</div>
-        <div class="sub">iMessage simulator</div>
+        <div class="name" data-ui="shipAi">Ship AI</div>
+        <div class="sub" data-ui="simulator">iMessage simulator</div>
       </div>
-      <a id="bridge" href="#" target="_blank" rel="noopener" title="Open your bridge view">🖥 Bridge</a>
+      <a id="bridge" href="#" target="_blank" rel="noopener" data-ui="bridgeBtn">🖥 Bridge</a>
     </header>
     <div id="log"></div>
     <footer>
-      <div id="preview"><img alt="" /><span>Photo attached. Add a caption or tap send.</span><button type="button" id="clearPhoto">✕</button></div>
+      <div id="preview"><img alt="" /><span data-ui="photoAttached">Photo attached. Add a caption or tap send.</span><button type="button" id="clearPhoto">✕</button></div>
       <form id="form" autocomplete="off">
         <button type="button" class="cam" id="camBtn" title="Send a photo">📷</button>
         <input type="file" id="file" accept="image/*" hidden />

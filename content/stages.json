@@ -113,7 +113,7 @@
               "hidden": true,
               "requires": ["tag:cushion"],
               "keywords": ["pad", "padding", "cushion", "buffer", "bumper", "wrap"],
-              "outcome": { "delta": { "hull": -5 }, "text": "Your {item} takes the hits like a champion. That was genius." }
+              "outcome": { "delta": { "hull": -5 }, "text": "Your {item} soaked up every hit. That was genius." }
             }
           ]
         },
@@ -241,7 +241,7 @@
               "hidden": true,
               "requires": ["tag:cushion"],
               "keywords": ["pad", "padding", "cushion", "buffer", "bumper", "wrap"],
-              "outcome": { "delta": { "hull": -6 }, "text": "Your {item} catches the shrapnel. Smart." }
+              "outcome": { "delta": { "hull": -6 }, "text": "Your {item} caught the shrapnel. Smart." }
             }
           ]
         }
@@ -268,7 +268,7 @@
             {
               "id": "keep",
               "label": "Keep your {item} and ration the air (risky)",
-              "hint": "keep it and ration the air",
+              "hint": "keep {obj} and ration the air",
               "keywords": ["keep", "ration", "save it", "hold on", "breathe", "conserve", "don't"],
               "chance": {
                 "p": 0.5,
@@ -282,7 +282,7 @@
               "hint": "reroute through the life-support upgrade",
               "requires": ["tag:life"],
               "keywords": ["reroute", "scrubber", "recycler", "co2", "life support", "bypass"],
-              "outcome": { "delta": { "oxygen": 12 }, "text": "The upgrade takes the load. Your {item} stays safe." }
+              "outcome": { "delta": { "oxygen": 12 }, "text": "The upgrade takes the load. Your {item} {is} safe." }
             },
             {
               "id": "plug",

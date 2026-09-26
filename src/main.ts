@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { AI } from './ai/ai.ts';
 import { Gemini } from './ai/gemini.ts';
 import { SimChannel } from './channel/sim.ts';
-import { loadContent } from './engine/content.ts';
+import { loadAllContent } from './engine/content.ts';
 import { GameService } from './game/service.ts';
 import { createHttpServer } from './server/http.ts';
 import { Hub } from './server/sse.ts';
@@ -18,12 +18,12 @@ if (existsSync(envFile) && typeof process.loadEnvFile === 'function') process.lo
 const port = Number(process.env.PORT ?? 3000);
 const publicUrl = (process.env.PUBLIC_URL ?? '').replace(/\/$/, '');
 
-const content = loadContent(join(root, 'content'));
+const contents = loadAllContent(join(root, 'content'));
 const store = new Store(join(root, 'data'));
 const hub = new Hub();
-const ai = new AI(new Gemini(process.env.GEMINI_API_KEY ?? '', process.env.GEMINI_MODEL || 'gemini-2.5-flash'), content);
+const ai = new AI(new Gemini(process.env.GEMINI_API_KEY ?? '', process.env.GEMINI_MODEL || 'gemini-2.5-flash'));
 const game = new GameService({
-  content,
+  contents,
   store,
   ai,
   hub,
