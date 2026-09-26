@@ -27,8 +27,8 @@ function modMenu(c: Content): string {
 
 function langRule(c: Content): string {
   return c.lang === 'zh'
-    ? 'Write "label" and "blurb" in Simplified Chinese. The blurb starts with "你的<label>，" (max 25 characters).'
-    : 'Write "label" and "blurb" in English. The blurb starts with "your <label>," (max 14 words).';
+    ? 'Write "label" and "blurb" in Simplified Chinese. The blurb starts with "你的<label>，" (max 25 characters) and MUST contain the exact name of the modification you chose, e.g. "你的围巾，被缝成了缓冲护垫".'
+    : 'Write "label" and "blurb" in English. The blurb starts with "your <label>," (max 14 words) and MUST contain the exact name of the modification you chose, e.g. "your scarf, stitched into an Impact Pad".';
 }
 
 function itemPrompt(c: Content, source: string): string {
@@ -46,7 +46,8 @@ function itemPrompt(c: Content, source: string): string {
   ].join('\n');
 }
 
-function validateItem(c: Content, raw: unknown): ItemInfo | null {
+/** Exported for tests. The blurb must name the gear it became, or the card would contradict itself. */
+export function validateItem(c: Content, raw: unknown): ItemInfo | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
   const mod = c.mods.find((m) => m.id === r.modId);
@@ -54,7 +55,9 @@ function validateItem(c: Content, raw: unknown): ItemInfo | null {
   if (!mod || !label) return null;
   if (typeof r.confidence === 'number' && r.confidence < 0.3) return { modId: 'standard_supplies', label: c.copy.standardLabel, blurb: '' };
   const bare = c.lang === 'en' ? bareLabel(label) : label;
-  const blurb = str(r.blurb, 120) ?? fmt(mod.blurb, { label: bare });
+  const aiBlurb = str(r.blurb, 120);
+  const namesMod = aiBlurb && aiBlurb.toLowerCase().includes(mod.name.toLowerCase());
+  const blurb = namesMod ? aiBlurb : fmt(mod.blurb, { label: bare });
   return { modId: mod.id, label: bare, blurb, plural: c.lang === 'en' && typeof r.plural === 'boolean' ? r.plural : undefined };
 }
 

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, describe, it } from 'node:test';
-import { AI } from '../src/ai/ai.ts';
+import { AI, validateItem } from '../src/ai/ai.ts';
 import { Gemini } from '../src/ai/gemini.ts';
 import type { Channel } from '../src/channel/types.ts';
 import { loadAllContent } from '../src/engine/content.ts';
@@ -288,6 +288,13 @@ describe('interpret', () => {
     assert.equal(interpretPick(s, content, 'the shield'), 1);
     assert.equal(interpretPick(s, zh, '太阳帆'), 2);
     assert.equal(interpretPick(s, zh, '我选3'), 2);
+  });
+
+  it('AI blurbs that name the wrong gear fall back to the template', () => {
+    const wrong = validateItem(zh, { modId: 'impact_pad', label: '办公椅', blurb: '你的办公椅，被改装成了舒适的舰桥指挥座。' });
+    assert.equal(wrong?.blurb, '你的办公椅，被缝成了缓冲护垫');
+    const right = validateItem(content, { modId: 'impact_pad', label: 'office chair', blurb: 'your office chair, stripped into an impact pad' });
+    assert.equal(right?.blurb, 'your office chair, stripped into an impact pad');
   });
 
   it('everyday objects in both languages', () => {
