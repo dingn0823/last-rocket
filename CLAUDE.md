@@ -66,6 +66,14 @@
 - Photon CLI 有 `spectrum users add` 和 `users list`（返回 `assignedPhoneNumber`），加入页可以用它登记用户、拿专属号码（待接）。
 - spectrum-ts 在 Node 下也能跑，不依赖 Bun。Windows 上 `bun create spectrum-project` 会因为调不起 npx 而取不到密钥，要手动登录 CLI 后用 `photon projects secret --project <id> --json` 取。
 
+## Gemini 已确认的事实（9/26 实测）
+- 学校（wustl.edu）Google 账号不能创建 Cloud 项目，拿不到密钥；要用个人 Gmail 在 AI Studio 左下角钥匙图标 → Create API key 申请。新版密钥不以 AIza 开头。
+- `gemini-2.5-flash` / `2.5-flash-lite` 对新用户已下线（404）。默认用 `gemini-3.5-flash-lite`，备用 `gemini-3.1-flash-lite`（`src/ai/gemini.ts` 的 DEFAULT_MODELS；`.env` 里 GEMINI_MODEL 可填逗号分隔的列表覆盖）。更大的 flash 模型常 503 或 10 秒以上，不适合 3 秒超时。
+- 速度：文字解析约 0.5–0.9 秒，照片识别（HEIC 直接传）约 2–3 秒。
+- 每局实际调用约 4–5 次（识别 1 + 自由回答解析 2–3 + 结局叙述 1），关键词命中的回答不调用。
+- 免费档限流：连续约 20 次请求后返回 429。额度按模型分开，程序会自动换下一个模型；全部被限流时自动退回编号选项，60 秒后恢复。
+- `node scripts/ai-check.ts` 一键实测：照片识别、自由回答解析、超时兜底、完整一局的调用次数。
+
 ## 安全与隐私
 - .env（Photon Secret、Gemini Key）必须在 .gitignore 里。不得把密钥写进代码、日志、提交记录或本文件。
 - 仓库里不得出现真实手机号和测试照片。
@@ -91,6 +99,6 @@
 - [x] 本地可玩 demo：引擎 + content JSON（12 改装件、12 强化、4 组合技、5 关事件、隐藏选项、3 结局）+ 网页 iMessage 模拟器 + 个人舰桥（SSE）
 - [x] 中英双语（content/zh.json、content/ui.json）
 - [x] 接入 Photon：`src/channel/photon.ts`，真机 iPhone 完整玩通一局（中文）
-- [ ] 填 GEMINI_API_KEY 实测照片识别和自由文本解析（目前只测了无 key 的关键词兜底）
+- [x] 接入 Gemini：照片识别、自由回答解析、结局叙述、超时和限流兜底都已实测
 - [ ] HEIC 转 JPEG（`src/server/http.ts` 里有 TODO）；存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

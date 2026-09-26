@@ -390,7 +390,14 @@ function nudge(ctx: Ctx): void {
       c.copy.intro.forEach((line) => say(ctx, line));
       break;
     case 'await_item':
-      say(ctx, c.copy.awaitItemReminder);
+      // Twice in a row without a recognizable item: offer the retry / Standard Supplies way out.
+      if (s.clarifyCount >= 1) {
+        s.clarifyCount = 0;
+        onScanFailed(ctx);
+      } else {
+        s.clarifyCount += 1;
+        say(ctx, c.copy.awaitItemReminder);
+      }
       break;
     case 'confirm_item':
       say(ctx, c.copy.nudgeConfirm);

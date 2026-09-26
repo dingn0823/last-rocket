@@ -23,7 +23,7 @@ const publicUrl = (process.env.PUBLIC_URL ?? '').replace(/\/$/, '');
 const contents = loadAllContent(join(root, 'content'));
 const store = new Store(join(root, 'data'));
 const hub = new Hub();
-const ai = new AI(new Gemini(process.env.GEMINI_API_KEY ?? '', process.env.GEMINI_MODEL || 'gemini-2.5-flash'));
+const ai = new AI(new Gemini(process.env.GEMINI_API_KEY ?? '', process.env.GEMINI_MODEL));
 // iMessage via Photon when credentials are present; the web phone simulator is always on for debugging.
 const channels: Channel[] = [new SimChannel(hub)];
 let deliver: (msg: Inbound) => unknown = () => {};
@@ -50,7 +50,7 @@ const game = new GameService({
 createHttpServer(game, hub, join(root, 'web')).listen(port, () => {
   console.log(`🚀 Last Rocket to the Moon — http://localhost:${port}`);
   console.log(`   phone simulator: http://localhost:${port}/phone`);
-  console.log(`   AI: ${ai.gemini.enabled ? `Gemini (${ai.gemini.model})` : 'off — keyword matching + numbered options'}`);
+  console.log(`   AI: ${ai.gemini.enabled ? `Gemini (${ai.gemini.models.join(' → ')})` : 'off — keyword matching + numbered options'}`);
 });
 
 deliver = (msg) => game.handleInbound(msg);

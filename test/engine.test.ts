@@ -406,6 +406,18 @@ describe('service', () => {
     assert.match((channel.sent[0][0] as { text: string }).text, /^Sorry, I didn't catch that/);
   });
 
+  it('two unrecognizable item descriptions offer the way out', async () => {
+    const { game } = makeService();
+    const send = (id: string, text: string) => game.handleInbound({ channel: 'fake', address: 'u1', msgId: id, text });
+    await send('1', 'join');
+    await send('2', 'blorp');
+    assert.equal(game.currentRun('u1')!.state.phase, 'await_item');
+    await send('3', 'zzzz');
+    assert.equal(game.currentRun('u1')!.state.phase, 'scan_failed');
+    await send('4', '2');
+    assert.equal(game.currentRun('u1')!.state.item?.modId, 'standard_supplies');
+  });
+
   it('two players never share state', async () => {
     const { game } = makeService();
     await Promise.all([
