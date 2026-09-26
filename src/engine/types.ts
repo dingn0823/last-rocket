@@ -216,7 +216,7 @@ export type Outbound =
   | { t: 'text'; text: string }
   | { t: 'scene'; stage: number; title: string; icon: string }
   | { t: 'gear_card'; card: GearCard }
-  | { t: 'fx'; fx: string; text: string }
+  | { t: 'fx'; fx: string; text: string; label: string }
   | { t: 'report'; report: Report };
 
 export interface StepEnv {

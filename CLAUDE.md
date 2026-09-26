@@ -23,6 +23,7 @@
 ## 常用命令
 - 脚手架（官方后台提供）：`bun create spectrum-project@latest <name> --projectId <id> --providers imessage --yes`，会自动生成带密钥的 .env。
 - 启动：`bun start`。回声测试：用已登记的手机给分配的号码发消息，应收到 `echo:` 开头的回复。
+- 真机 iMessage：`.env` 里有 `PROJECT_ID`/`PROJECT_SECRET` 时 `npm start` 会自动连上 Photon（日志出现 `[photon] connected`）；设 `PHOTON=0` 可关闭。查某个玩家的专属号码：`npx @photon-ai/cli spectrum users list --json`（需先 `npx @photon-ai/cli login`，项目 id 用环境变量 `PHOTON_PROJECT_ID`）。`node scripts/photon-probe.ts` 给最近的 iMessage 玩家发两条测试消息，验证主动推送。
 - 本地 demo（无需 Photon/Gemini）：`npm start`（Node ≥23.6 直接跑 .ts，或 `bun src/main.ts`），打开 http://localhost:3000/phone 用网页模拟 iMessage。
 - `npm test`：引擎、输入解析、去重、服务层测试。`npm run simulate`：各物品胜率平衡表。`npm run typecheck`：类型检查（需先 `npm install`）。
 - 代码规则：Node 原生 TS 只支持可擦除语法，禁止 enum / namespace / 构造函数参数属性；import 带 `.ts` 后缀。
@@ -58,10 +59,12 @@
 ## Photon 已确认的事实
 - 玩家必须先登记为项目用户（手机号）才能进入项目；未登记的号码发消息，会收到 Photon 的"未识别"自动回复。
 - 登记后 Photon 分配一个共享号码（后台显示为 Texts on）。删除后重新添加会换号，所以号码必须实时从 API 获取，禁止写死。
-- 共享号码很可能不能主动发起对话，所以加入流程设计为玩家先发第一条消息。
+- 对已经给我们发过消息的玩家，程序可以随时主动推送（已实测）；对从没联系过的号码能否主动发起仍未测，所以加入流程仍设计为玩家先发第一条消息。
 - 玩家 iPhone 的 iMessage 身份必须和登记的手机号一致。
 - Pro 档没有完整的群聊接口；Photon Call 尚未开放；聊天背景自定义约需 30 秒同步，已弃用。
-- 待验证：能否用 API 添加用户并返回分配的号码；收到的照片是什么格式；玩家发过首条消息后，程序能否连续主动发送多条消息。
+- 已验证（9/26 真机）：iPhone 发来的照片是 `image/heic`（如 IMG_1685.HEIC，约 900KB），SDK 用 `attachment.read()` 取到 Buffer；程序可以连续发多条消息，也可以在玩家没发消息时主动推送（`imessage(app).space.create(号码)`）。
+- Photon CLI 有 `spectrum users add` 和 `users list`（返回 `assignedPhoneNumber`），加入页可以用它登记用户、拿专属号码（待接）。
+- spectrum-ts 在 Node 下也能跑，不依赖 Bun。Windows 上 `bun create spectrum-project` 会因为调不起 npx 而取不到密钥，要手动登录 CLI 后用 `photon projects secret --project <id> --json` 取。
 
 ## 安全与隐私
 - .env（Photon Secret、Gemini Key）必须在 .gitignore 里。不得把密钥写进代码、日志、提交记录或本文件。
@@ -86,8 +89,8 @@
 ## 当前进度
 - [x] Photon 项目已建好，Pro 已兑换（上限 100 人），iMessage 消息能送进项目
 - [x] 本地可玩 demo：引擎 + content JSON（12 改装件、12 强化、4 组合技、5 关事件、隐藏选项、3 结局）+ 网页 iMessage 模拟器 + 个人舰桥（SSE）
-- [ ] 回声测试（bun start 后收到 echo: 回复）
-- [ ] `src/channel/` 接入 Photon Spectrum（实现 `Channel` 接口，收到消息调用 `game.handleInbound`）
+- [x] 中英双语（content/zh.json、content/ui.json）
+- [x] 接入 Photon：`src/channel/photon.ts`，真机 iPhone 完整玩通一局（中文）
 - [ ] 填 GEMINI_API_KEY 实测照片识别和自由文本解析（目前只测了无 key 的关键词兜底）
 - [ ] HEIC 转 JPEG（`src/server/http.ts` 里有 TODO）；存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

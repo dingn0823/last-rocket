@@ -16,7 +16,9 @@ npm start          # or: bun src/main.ts
 - http://localhost:3000/phone is the iMessage simulator (stand-in for the Photon channel)
 - **🖥 Bridge** in the simulator header opens the live bridge view for that run
 
-Optional `.env` (see `.env.example`): `GEMINI_API_KEY` enables photo recognition, free-text parsing and ending narration. Without it, the game still plays end to end: typed item descriptions and photo captions are matched by keywords, and unclear replies fall back to numbered options.
+To play over real iMessage, put your Photon Spectrum `PROJECT_ID` and `PROJECT_SECRET` in `.env` (from the [Photon dashboard](https://app.photon.codes), or `npx @photon-ai/cli projects secret --project <id> --json`). `npm start` then connects automatically; registered users text their assigned number (`npx @photon-ai/cli spectrum users list`). The first message ("join" or "加入") also picks English or Chinese.
+
+Also optional in `.env`: `GEMINI_API_KEY` enables photo recognition, free-text parsing and ending narration. Without it, the game still plays end to end: typed item descriptions and photo captions are matched by keywords, and unclear replies fall back to numbered options.
 
 ```bash
 npm test           # engine, input parsing, dedupe, service

@@ -37,7 +37,7 @@ function textOf(o: Outbound): string[] {
   switch (o.t) {
     case 'text': return [o.text];
     case 'scene': return [o.title];
-    case 'fx': return [o.text];
+    case 'fx': return [o.text, o.label];
     case 'gear_card': return [o.card.name, o.card.subtitle, o.card.effectText, o.card.blurb ?? ''];
     case 'report': return [o.report.title, o.report.item?.label ?? '', o.report.item?.name ?? '', ...o.report.upgrades.map((u) => u.name), ...o.report.combos.map((k) => k.name)];
   }
@@ -245,6 +245,10 @@ describe('interpret', () => {
     assert.deepEqual(interpretAction(land, zh, '手动驾驶'), { kind: 'action', id: 'manual' });
     assert.deepEqual(interpretAction(land, zh, '自动驾驶'), { kind: 'action', id: 'autopilot' });
     assert.deepEqual(interpretAction(land, zh, '悬停'), { kind: 'action', id: 'hover' });
+
+    const dust = runAt(5, 'dust_storm', 'impact_pad', zh, '围巾');
+    assert.deepEqual(interpretAction(dust, zh, '慢慢'), { kind: 'action', id: 'feather' });
+    assert.deepEqual(interpretAction(dust, zh, '拆成零件'), { kind: 'none' });
 
     const sig = runAt(3, 'strange_signal', 'impact_pad', zh, '围巾');
     assert.deepEqual(interpretAction(sig, zh, '跟着信号'), { kind: 'action', id: 'follow' });

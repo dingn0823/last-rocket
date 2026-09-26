@@ -87,6 +87,10 @@ function rand(ctx: Ctx): number {
   return v;
 }
 
+function pushFx(ctx: Ctx, fx: string, text: string): void {
+  ctx.out.push({ t: 'fx', fx, text, label: ctx.c.copy[`fx_${fx}`] ?? fx });
+}
+
 function say(ctx: Ctx, text: string): void {
   ctx.out.push({ t: 'text', text });
 }
@@ -139,7 +143,7 @@ function onItemScanned(ctx: Ctx, item: ItemInfo): void {
 function onScanFailed(ctx: Ctx): void {
   if (ctx.s.retakesUsed >= 1) return lockStandard(ctx, ctx.c.copy.itemRetakeUsed);
   ctx.s.phase = 'scan_failed';
-  say(ctx, `${ctx.c.copy.scanFailed} ${ctx.c.copy.scanFailedAsk}`);
+  say(ctx, `${ctx.c.copy.scanFailed}${ctx.c.copy.sentenceSep}${ctx.c.copy.scanFailedAsk}`);
 }
 
 function retake(ctx: Ctx): void {
@@ -245,7 +249,7 @@ function resolveAction(ctx: Ctx, action: Action): void {
   applyDeltas(s, c, { oxygen: -c.lifeSupportPerStage });
   if (outcome.item === 'consumed' && s.item) s.item.status = 'consumed';
   s.history.push({ stage: s.stage, eventId: s.eventId!, actionId: action.id, success });
-  if (stage.fx) ctx.out.push({ t: 'fx', fx: stage.fx, text: stage.name });
+  if (stage.fx) pushFx(ctx, stage.fx, stage.name);
   say(ctx, `${text}\n${statusLine(ctx)}`);
   if (checkVitals(ctx)) return;
   if (stage.pickAfter !== undefined) return offerPick(ctx, stage.pickAfter);
@@ -257,7 +261,7 @@ function resolveAction(ctx: Ctx, action: Action): void {
 function checkVitals(ctx: Ctx): boolean {
   const { s, c } = ctx;
   for (const save of useShields(s, c)) {
-    ctx.out.push({ t: 'fx', fx: 'shield', text: save.gear.name });
+    pushFx(ctx, 'shield', save.gear.name);
     const resource = c.copy[`resource_${save.resource}`];
     say(ctx, fmt(c.copy.shieldSaved, { name: save.gear.name, resource, amount: save.amount }));
   }
@@ -320,7 +324,7 @@ function onPick(ctx: Ctx, id: string): void {
   s.upgrades.push(id);
   s.offer = null;
   applyInstantEffects(s, c, u.effects);
-  if (u.rarity === 'legendary') ctx.out.push({ t: 'fx', fx: 'legendary', text: u.name });
+  if (u.rarity === 'legendary') pushFx(ctx, 'legendary', u.name);
   ctx.out.push({
     t: 'gear_card',
     card: { kind: 'upgrade', id: u.id, name: u.name, icon: u.icon, subtitle: capitalize(c.copy[`rarity_${u.rarity}`]), effectText: u.effectText, rarity: u.rarity },
@@ -329,7 +333,7 @@ function onPick(ctx: Ctx, id: string): void {
     const k = c.combos.find((x) => x.id === comboId)!;
     s.combos.push(k.id);
     applyInstantEffects(s, c, k.effects);
-    ctx.out.push({ t: 'fx', fx: 'combo', text: k.name });
+    pushFx(ctx, 'combo', k.name);
     say(ctx, t(ctx, c.copy.combo, { name: `${k.icon} ${k.name}`, text: t(ctx, k.text) }));
   }
   say(ctx, `${fmt(c.copy.pickGot, { name: u.name })}\n${statusLine(ctx)}`);
@@ -359,7 +363,7 @@ function finish(ctx: Ctx, kind: EndingKind, cause?: Resource): void {
   s.phase = 'ended';
   s.eventId = null;
   s.ending = { kind, cause, score };
-  ctx.out.push({ t: 'fx', fx: e.fx, text: e.title });
+  pushFx(ctx, e.fx, e.title);
   const causeText = cause ? c.endings.causes[cause] : '';
   say(ctx, t(ctx, e.lines.join(c.copy.sentenceSep), { cause: causeText }).trim());
   if (s.item) say(ctx, t(ctx, s.item.status === 'kept' ? e.kept : e.consumed));

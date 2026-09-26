@@ -17,5 +17,8 @@
   "devDependencies": {
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0"
+  },
+  "dependencies": {
+    "spectrum-ts": "^12.10.1"
   }
 }
