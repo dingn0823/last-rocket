@@ -1,5 +1,5 @@
 // iMessage simulator: talks to the same game service a real Photon channel would.
-import { escapeHtml, loadUi, playFx, setLang, ui } from './fx.js';
+import { escapeHtml, loadUi, playFx, poll, setLang, ui } from './fx.js';
 
 const log = document.getElementById('log');
 const form = document.getElementById('form');
@@ -166,10 +166,12 @@ function showStart() {
 async function boot() {
   await loadUi();
   applyLang('en');
+  let cursor = 0;
   if (address) {
     try {
       const h = await api(`/api/sim/history?address=${encodeURIComponent(address)}`);
       if (h.lang) applyLang(h.lang);
+      cursor = h.cursor ?? 0;
       for (const e of h.transcript) e.dir === 'in' ? renderIn(e.msg) : renderOut(e.msg, false);
       setBridge(h.bridgeUrl);
     } catch {
@@ -179,17 +181,18 @@ async function boot() {
   if (!address) {
     address = (await api('/api/sim/new', { nickname: 'Crew' })).address;
     localStorage.setItem('lr_address', address);
+    cursor = (await api(`/api/sim/history?address=${encodeURIComponent(address)}`)).cursor ?? 0;
   }
-  const es = new EventSource(`/api/sim/stream?address=${encodeURIComponent(address)}`);
-  es.addEventListener('out', (ev) => {
-    queue.push(...JSON.parse(ev.data));
-    drain();
-  });
-  es.addEventListener('typing', () => { if (!draining) showTyping(true); });
-  es.addEventListener('run', (ev) => {
-    const info = JSON.parse(ev.data);
-    setBridge(info.bridgeUrl);
-    applyLang(info.lang);
+  poll(`/api/sim/poll?address=${encodeURIComponent(address)}`, cursor, (event, data) => {
+    if (event === 'out') {
+      queue.push(...data);
+      drain();
+    } else if (event === 'typing') {
+      if (!draining) showTyping(true);
+    } else if (event === 'run') {
+      setBridge(data.bridgeUrl);
+      applyLang(data.lang);
+    }
   });
   if (!log.querySelector('.row')) showStart();
 }

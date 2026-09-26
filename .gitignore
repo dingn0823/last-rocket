@@ -13,3 +13,4 @@ data/
 *.webp
 *.gif
 .claude/settings.local.json
+tools/

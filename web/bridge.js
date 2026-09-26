@@ -1,5 +1,5 @@
-// Personal bridge: live view of one run, fed by SSE. UI language follows the run.
-import { escapeHtml, getLang, loadUi, playFx, setLang, ui } from './fx.js';
+// Personal bridge: live view of one run (long polling). UI language follows the run; follows the player to new runs.
+import { escapeHtml, getLang, loadUi, playFx, poll, setLang, ui } from './fx.js';
 
 const token = location.pathname.split('/').pop();
 const $ = (id) => document.getElementById(id);
@@ -142,25 +142,26 @@ async function boot() {
     $('stage').textContent = ui('unknownBridge');
     return;
   }
-  const { snapshot, recent } = await res.json();
+  const { snapshot, recent, next, cursor } = await res.json();
+  // Opened an old link after the player already started another run: jump straight there.
+  if (next && snapshot.phase === 'ended') return location.replace(next);
   setLang(snapshot.lang ?? 'en');
   render(snapshot);
   addComms(recent);
 
-  const es = new EventSource(`/api/bridge/${token}/stream`);
-  es.onopen = () => $('live').classList.add('on');
-  es.onerror = () => $('live').classList.remove('on');
-  es.addEventListener('scanning', (ev) => {
-    scanningPhoto = JSON.parse(ev.data).photoUrl;
-    if (prev) renderCargo(prev);
-  });
-  es.addEventListener('update', (ev) => {
-    const { snapshot, out } = JSON.parse(ev.data);
-    render(snapshot);
-    addComms(out);
-    const fx = out.filter((m) => m.t === 'fx');
-    fx.forEach((m, i) => setTimeout(() => playFx(m.fx, m.text), i * 1500));
-  });
+  poll(`/api/bridge/${token}/poll`, cursor ?? 0, (event, data) => {
+    if (event === 'scanning') {
+      scanningPhoto = data.photoUrl;
+      if (prev) renderCargo(prev);
+    } else if (event === 'update') {
+      render(data.snapshot);
+      addComms(data.out);
+      data.out.filter((m) => m.t === 'fx').forEach((m, i) => setTimeout(() => playFx(m.fx, m.text), i * 1500));
+    } else if (event === 'next') {
+      // "again" on the phone: follow the player to the new run.
+      setTimeout(() => location.replace(data.path), 1500);
+    }
+  }, (ok) => $('live').classList.toggle('on', ok));
 }
 
 boot();

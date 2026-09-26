@@ -24,6 +24,33 @@ export function ui(key, vars = {}) {
   return typeof v === 'string' ? v.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : v;
 }
 
+/**
+ * Long-poll loop: GET url&after=<cursor> answers with new events (or [] after ~25s), then asks again.
+ * Plain requests pass through any tunnel or proxy, unlike SSE.
+ */
+export function poll(url, cursor, onEvent, onStatus) {
+  let stopped = false;
+  (async () => {
+    while (!stopped) {
+      try {
+        const r = await fetch(`${url}${url.includes('?') ? '&' : '?'}after=${cursor}`, { cache: 'no-store' });
+        if (!r.ok) throw new Error(String(r.status));
+        const j = await r.json();
+        onStatus?.(true);
+        for (const e of j.events) {
+          cursor = Math.max(cursor, e.seq);
+          onEvent(e.event, e.data);
+        }
+        cursor = Math.max(cursor, j.cursor ?? 0);
+      } catch {
+        onStatus?.(false);
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+  })();
+  return () => (stopped = true);
+}
+
 export function playFx(fx, sub) {
   const el = document.createElement('div');
   el.className = 'fx-overlay';

@@ -36,7 +36,11 @@
     "stageFmt": "Stage {n}/5",
     "score": "score",
     "unknownBridge": "Unknown bridge link.",
-    "endings": { "success": "TOUCHDOWN", "rescue": "ADRIFT", "failure": "LOST" },
+    "endings": {
+      "success": "TOUCHDOWN",
+      "rescue": "ADRIFT",
+      "failure": "LOST"
+    },
     "fx": {
       "launch": "🚀 LIFTOFF",
       "combo": "⚡ COMBO",
@@ -45,7 +49,34 @@
       "landing": "🌕 TOUCHDOWN",
       "drift": "🛰️ ADRIFT",
       "crash": "💥 LOST"
-    }
+    },
+    "joinTitle": "Board the last rocket",
+    "joinIntro": "Earth has hours left. Bring one thing, and fly to the Moon from your phone.",
+    "nickname": "Nickname",
+    "nicknamePh": "What should the crew call you?",
+    "phone": "iPhone number",
+    "phonePh": "Phone number",
+    "phoneHint": "The number your iPhone uses for iMessage.",
+    "langLabel": "Language",
+    "joinBtn": "Get my boarding pass",
+    "registering": "Registering you with the ship…",
+    "scanTitle": "Scan with your iPhone camera",
+    "scanSteps": "Messages opens with the text ready. Just tap send.",
+    "orText": "Or text {text} to {number}",
+    "openMessages": "Open Messages",
+    "waiting": "Waiting for your message…",
+    "paired": "Connected! Opening your bridge…",
+    "iMessageNote": "Make sure iMessage on your iPhone uses this phone number (Settings › Messages › Send & Receive).",
+    "privacy": "Your number is only used to connect iMessage.",
+    "startOver": "Start over",
+    "err_bad_nickname": "Pick a nickname first.",
+    "err_bad_phone": "Include your country code, e.g. +1 314 555 0123.",
+    "err_full": "The rocket is full. Ask the team to play on the spare phone.",
+    "err_not_logged_in": "Boarding is paused right now. Ask the team to help you join.",
+    "err_registration_unavailable": "Boarding is paused right now. Ask the team to help you join.",
+    "err_no_line": "This phone couldn't be connected to iMessage. Try another phone.",
+    "err_too_many": "Too many tries. Wait a few minutes and try again.",
+    "err_generic": "Something went wrong. Try again in a moment."
   },
   "zh": {
     "shipAi": "飞船智能",
@@ -84,7 +115,11 @@
     "stageFmt": "第 {n}/5 关",
     "score": "得分",
     "unknownBridge": "无效的舰桥链接。",
-    "endings": { "success": "成功着陆", "rescue": "等待救援", "failure": "失联" },
+    "endings": {
+      "success": "成功着陆",
+      "rescue": "等待救援",
+      "failure": "失联"
+    },
     "fx": {
       "launch": "🚀 起飞",
       "combo": "⚡ 组合技",
@@ -93,6 +128,33 @@
       "landing": "🌕 成功着陆",
       "drift": "🛰️ 漂流",
       "crash": "💥 失联"
-    }
+    },
+    "joinTitle": "登上最后一班火箭",
+    "joinIntro": "地球只剩几个小时。带上一样东西，用手机飞往月球。",
+    "nickname": "昵称",
+    "nicknamePh": "船员们怎么称呼你？",
+    "phone": "iPhone 手机号",
+    "phonePh": "手机号码",
+    "phoneHint": "你的 iPhone 上 iMessage 使用的号码。",
+    "langLabel": "语言",
+    "joinBtn": "领取登船码",
+    "registering": "正在为你登记……",
+    "scanTitle": "用 iPhone 相机扫一扫",
+    "scanSteps": "会打开\"信息\"并填好内容，点发送就行。",
+    "orText": "或者用 iMessage 发送 {text} 到 {number}",
+    "openMessages": "打开信息",
+    "waiting": "等待你的消息……",
+    "paired": "已连接！正在打开你的舰桥……",
+    "iMessageNote": "请确认 iPhone 的 iMessage 使用的是这个号码（设置 › 信息 › 发送与接收）。",
+    "privacy": "你的号码只用于连接 iMessage。",
+    "startOver": "重新填写",
+    "err_bad_nickname": "请先填一个昵称。",
+    "err_bad_phone": "请带上国家区号，例如 +86 138 0000 0000。",
+    "err_full": "火箭满员了。请找工作人员用备用手机来玩。",
+    "err_not_logged_in": "登船暂时暂停，请找工作人员帮你加入。",
+    "err_registration_unavailable": "登船暂时暂停，请找工作人员帮你加入。",
+    "err_no_line": "这个号码暂时无法连接 iMessage，请换一部手机试试。",
+    "err_too_many": "尝试次数太多了，请等几分钟再试。",
+    "err_generic": "出了点问题，请稍后再试。"
   }
 }

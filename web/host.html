@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Host console · Last Rocket</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body { padding: 24px; }
+    .wrap { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 360px 1fr; gap: 18px; }
+    @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+    h1 { grid-column: 1 / -1; margin: 0; font-size: 18px; letter-spacing: .2em; }
+    h2 { margin: 0 0 12px; font-size: 11px; letter-spacing: .2em; color: var(--muted); }
+    .qr { background: #fff; border-radius: 14px; padding: 12px; aspect-ratio: 1; }
+    .qr img { width: 100%; height: 100%; display: block; }
+    .url { font-family: ui-monospace, Menlo, monospace; font-size: 13px; word-break: break-all; margin: 10px 0; color: var(--cyan); }
+    .status div { display: flex; justify-content: space-between; font-size: 13.5px; padding: 6px 0; border-bottom: 1px solid #ffffff10; }
+    .ok { color: var(--hull); } .bad { color: var(--danger); } .warn { color: var(--fuel); }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    th { text-align: left; color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: .12em; padding: 6px 8px; }
+    td { padding: 8px; border-top: 1px solid #ffffff10; }
+    tr.old td { opacity: .45; }
+    a.open { color: #fff; background: var(--blue); padding: 4px 10px; border-radius: 8px; text-decoration: none; font-size: 12px; }
+    .btn { display: inline-block; margin-top: 8px; padding: 8px 14px; border-radius: 10px; background: #ffffff14; color: var(--text); text-decoration: none; font-size: 13px; border: 0; }
+    .big { position: fixed; inset: 0; background: #05060fee; display: none; place-items: center; z-index: 10; text-align: center; }
+    .big.on { display: grid; }
+    .big .qr { width: min(70vh, 80vw); margin: 0 auto 18px; }
+    .big .title { font-size: 42px; font-weight: 900; margin-bottom: 12px; }
+    .big .url { font-size: 22px; }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="wrap">
+    <h1>LAST ROCKET · HOST CONSOLE</h1>
+    <div>
+      <div class="panel">
+        <h2>JOIN (SHOW THIS ON THE BIG SCREEN)</h2>
+        <div class="qr"><img id="qr" alt="" /></div>
+        <div class="url" id="joinUrl">…</div>
+        <button class="btn" id="bigBtn">⛶ Full screen QR</button>
+        <a class="btn" href="/phone" target="_blank">📱 Phone simulator</a>
+      </div>
+      <div class="panel status" style="margin-top: 18px">
+        <h2>STATUS</h2>
+        <div><span>Public URL (tunnel)</span><span id="sTunnel">…</span></div>
+        <div><span>iMessage auto-registration</span><span id="sPhoton">…</span></div>
+        <div><span>Gemini</span><span id="sAi">…</span></div>
+        <div><span>Mode</span><span id="sMode">…</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>PLAYERS (NEWEST FIRST)</h2>
+      <table>
+        <thead><tr><th>Player</th><th>Where</th><th>Stage</th><th>Fuel · O₂ · Hull</th><th>Last move</th><th></th></tr></thead>
+        <tbody id="runs"><tr><td colspan="6">No runs yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="big" id="big"><div><div class="title">🌕 Board the last rocket</div><div class="qr"><img id="qrBig" alt="" /></div><div class="url" id="joinUrlBig"></div></div></div>
+  <script type="module" src="/static/host.js"></script>
+</body>
+</html>

@@ -9,8 +9,9 @@ import { randomSeed } from '../engine/rng.ts';
 import { currentEvent, modById } from '../engine/rules.ts';
 import { detectLang, fmt, type Lang } from '../engine/text.ts';
 import type { Content, EngineInput, Outbound, RunState } from '../engine/types.ts';
-import type { Hub } from '../server/sse.ts';
+import type { Hub } from '../server/hub.ts';
 import type { Player, RunRecord, Store } from '../store/store.ts';
+import { JoinRegistry } from './join.ts';
 
 export interface ServiceOptions {
   contents: Record<Lang, Content>;
@@ -35,8 +36,10 @@ export class GameService {
   readonly store: Store;
   readonly ai: AI;
   readonly hub: Hub;
-  readonly publicUrl: string;
+  /** Public https base (Cloudflare tunnel); may be set after startup. Empty = local only. */
+  publicUrl: string;
   eventMode: boolean;
+  readonly joins = new JoinRegistry();
   private channels = new Map<string, Channel>();
   private queues = new Map<string, Promise<void>>();
 
@@ -56,7 +59,11 @@ export class GameService {
   }
 
   bridgeUrl(token: string): string {
-    return `${this.publicUrl}/bridge/${token}`;
+    return `${this.publicUrl}${this.bridgePath(token)}`;
+  }
+
+  bridgePath(token: string): string {
+    return `/bridge/${token}`;
   }
 
   contentFor(s: RunState): Content {
@@ -100,6 +107,7 @@ export class GameService {
 
   private createRun(player: Player, lang: Lang): RunRecord {
     const now = Date.now();
+    const previous = player.currentRunId ? this.store.getRun(player.currentRunId) : undefined;
     const rec: RunRecord = {
       state: newRun(randomUUID(), randomSeed(), this.contents[lang], now),
       address: player.address,
@@ -111,6 +119,8 @@ export class GameService {
     this.store.saveRun(rec);
     player.currentRunId = rec.state.runId;
     this.store.savePlayer(player);
+    // A bridge showing the player's previous run follows them to the new one.
+    if (previous) this.hub.publish(`bridge:${previous.bridgeToken}`, 'next', { path: this.bridgePath(rec.bridgeToken) });
     void this.channels.get(player.channel)?.runStarted?.(player.address, { runId: rec.state.runId, bridgeUrl: this.bridgeUrl(rec.bridgeToken), lang });
     return rec;
   }
@@ -119,10 +129,23 @@ export class GameService {
     const player = this.ensurePlayer(msg.channel, msg.address);
     const existing = player.currentRunId ? this.store.getRun(player.currentRunId) : undefined;
     // The first message picks the language: "join" → English, "加入" → Chinese. Same for "again" / "再来一局".
-    let rec = existing ?? this.createRun(player, detectLang(msg.text));
-    if (rec.state.processed.includes(msg.msgId)) {
+    if (existing?.state.processed.includes(msg.msgId)) {
       console.log(`[game] duplicate ${msg.msgId} dropped`);
       return;
+    }
+    // "join 4821" from a phone that a computer's join page is waiting for: fresh run, and the page opens its bridge.
+    const join = this.joins.claim(msg.text);
+    let rec: RunRecord;
+    if (join) {
+      player.nickname = join.nickname;
+      if (existing) existing.state = { ...existing.state, processed: [...existing.state.processed, msg.msgId].slice(-PROCESSED_CAP) };
+      if (existing) this.store.saveRun(existing);
+      rec = this.createRun(player, detectLang(msg.text));
+      join.pairedPath = this.bridgePath(rec.bridgeToken);
+      this.hub.publish(`join:${join.token}`, 'paired', { path: join.pairedPath });
+      console.log(`[join] paired code ${join.code} → run ${rec.state.runId}`);
+    } else {
+      rec = existing ?? this.createRun(player, detectLang(msg.text));
     }
 
     if (rec.state.phase === 'ended' && msg.text && isAgain(msg.text)) {
@@ -149,6 +172,10 @@ export class GameService {
     const result = step(rec.state, decision.input, c, { numbered, now: Date.now() });
     result.state.processed = [...result.state.processed, msg.msgId].slice(-PROCESSED_CAP);
     rec.state = result.state;
+    // Phone-only players get a link to watch their rocket (the join-page flow already has it open).
+    if (decision.input.type === 'start' && !join && this.publicUrl && rec.channel !== 'sim') {
+      result.out.push({ t: 'text', text: fmt(c.copy.bridgeLink, { url: this.bridgeUrl(rec.bridgeToken) }) });
+    }
     for (const o of result.out) rec.transcript.push({ dir: 'out', at: Date.now(), msg: o });
 
     // Save first, then send. A failed send never re-runs the step.

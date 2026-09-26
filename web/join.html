@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Board the last rocket</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+    .card { width: min(460px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 28px 26px; backdrop-filter: blur(8px); box-shadow: 0 30px 80px #0008; }
+    .moon { font-size: 54px; text-align: center; filter: drop-shadow(0 0 24px #fff5c888); }
+    h1 { margin: 6px 0 4px; text-align: center; font-size: 26px; }
+    .intro { text-align: center; color: var(--muted); margin: 0 0 22px; font-size: 15px; line-height: 1.5; }
+    .langs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .langs button { border: 1px solid var(--line); background: transparent; color: var(--text); padding: 6px 16px; border-radius: 999px; }
+    .langs button.on { background: var(--cyan); color: #04121a; border-color: var(--cyan); font-weight: 800; }
+    label { display: block; font-size: 12px; letter-spacing: .1em; color: var(--muted); margin: 14px 0 6px; text-transform: uppercase; }
+    input, select { width: 100%; height: 46px; border-radius: 12px; border: 1px solid #2c3561; background: #0b1130; color: var(--text); font-size: 16px; padding: 0 14px; outline: none; }
+    input:focus, select:focus { border-color: var(--cyan); }
+    .phone-row { display: grid; grid-template-columns: 120px 1fr; gap: 8px; }
+    .hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+    .btn { display: block; width: 100%; margin-top: 22px; height: 50px; border: 0; border-radius: 14px; background: var(--blue); color: #fff; font-size: 17px; font-weight: 800; text-align: center; line-height: 50px; text-decoration: none; }
+    .btn:disabled { opacity: .6; }
+    .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 14px; height: 40px; line-height: 38px; }
+    .err { color: var(--danger); font-size: 14px; margin-top: 12px; min-height: 18px; text-align: center; }
+    .qr { background: #fff; border-radius: 16px; padding: 14px; width: 250px; height: 250px; margin: 6px auto 12px; }
+    .qr img { width: 100%; height: 100%; display: block; }
+    .step { text-align: center; }
+    .step h2 { margin: 0 0 6px; font-size: 20px; }
+    .step p { color: var(--muted); margin: 4px 0; font-size: 14.5px; }
+    .code { font-family: ui-monospace, Menlo, monospace; color: var(--cyan); font-weight: 800; }
+    .wait { margin-top: 14px; color: var(--cyan); font-size: 14px; }
+    .wait::before { content: ''; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--cyan); margin-right: 8px; animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { opacity: .2; } }
+    .note { font-size: 12px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+    .hidden { display: none !important; }
+    .mobile-only { display: none; }
+    body.mobile .mobile-only { display: block; }
+    body.mobile .desktop-only { display: none; }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="card">
+    <div class="moon">🌕</div>
+    <h1 data-ui="joinTitle">Board the last rocket</h1>
+    <p class="intro" data-ui="joinIntro"></p>
+
+    <form id="form" autocomplete="on">
+      <div class="langs"><button type="button" data-lang="en">English</button><button type="button" data-lang="zh">中文</button></div>
+      <label for="nick" data-ui="nickname">Nickname</label>
+      <input id="nick" maxlength="24" required autocomplete="nickname" />
+      <label for="num" data-ui="phone">iPhone number</label>
+      <div class="phone-row">
+        <select id="cc">
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+86">🇨🇳 +86</option>
+          <option value="+852">🇭🇰 +852</option>
+          <option value="+886">🇹🇼 +886</option>
+          <option value="+82">🇰🇷 +82</option>
+          <option value="+81">🇯🇵 +81</option>
+          <option value="+91">🇮🇳 +91</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="">+ …</option>
+        </select>
+        <input id="num" type="tel" inputmode="tel" required autocomplete="tel-national" />
+      </div>
+      <div class="hint" data-ui="phoneHint"></div>
+      <button class="btn" id="go" data-ui="joinBtn">Get my boarding pass</button>
+      <div class="err" id="err"></div>
+      <div class="note" data-ui="privacy"></div>
+    </form>
+
+    <div id="scan" class="step hidden">
+      <div class="desktop-only">
+        <h2 data-ui="scanTitle">Scan with your iPhone camera</h2>
+        <div class="qr"><img id="qr" alt="QR code" /></div>
+        <p data-ui="scanSteps"></p>
+      </div>
+      <a class="btn mobile-only" id="sms" data-ui="openMessages">Open Messages</a>
+      <p id="orText"></p>
+      <div class="wait" id="wait" data-ui="waiting"></div>
+      <div class="note" data-ui="iMessageNote"></div>
+      <button class="btn ghost" id="restart" type="button" data-ui="startOver">Start over</button>
+    </div>
+  </div>
+  <script type="module" src="/static/join.js"></script>
+</body>
+</html>

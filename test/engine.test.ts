@@ -11,7 +11,7 @@ import { newRun, step } from '../src/engine/engine.ts';
 import { classifyByKeyword, interpretAction, interpretConfirm, interpretPick } from '../src/engine/interpret.ts';
 import type { Content, EngineInput, Outbound, RunState } from '../src/engine/types.ts';
 import { GameService } from '../src/game/service.ts';
-import { Hub } from '../src/server/sse.ts';
+import { Hub } from '../src/server/hub.ts';
 import { Store } from '../src/store/store.ts';
 import { playRun } from '../scripts/simulate.ts';
 

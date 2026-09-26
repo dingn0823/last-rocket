@@ -13,7 +13,7 @@
 - 评委和观众以英语为主：游戏内所有文案、界面文字用英文。团队文档可以用中文。
 
 ## 技术栈
-- TypeScript + Bun。一个常驻后端进程，同时负责 Spectrum 消息、游戏状态、网页服务和 SSE 推送。
+- TypeScript（Node ≥23.6 直接运行，也兼容 Bun）。一个常驻后端进程，同时负责 Spectrum 消息、游戏状态、网页服务、网页实时推送（长轮询）和 Cloudflare 隧道。
 - spectrum-ts，iMessage provider（Spectrum Cloud 共享号码）。
 - SQLite 存档。
 - Gemini 免费档：只用于照片识别归类、非数字自然语言解析、结局叙述。
@@ -24,6 +24,9 @@
 - 脚手架（官方后台提供）：`bun create spectrum-project@latest <name> --projectId <id> --providers imessage --yes`，会自动生成带密钥的 .env。
 - 启动：`bun start`。回声测试：用已登记的手机给分配的号码发消息，应收到 `echo:` 开头的回复。
 - 真机 iMessage：`.env` 里有 `PROJECT_ID`/`PROJECT_SECRET` 时 `npm start` 会自动连上 Photon（日志出现 `[photon] connected`）；设 `PHOTON=0` 可关闭。查某个玩家的专属号码：`npx @photon-ai/cli spectrum users list --json`（需先 `npx @photon-ai/cli login`，项目 id 用环境变量 `PHOTON_PROJECT_ID`）。`node scripts/photon-probe.ts` 给最近的 iMessage 玩家发两条测试消息，验证主动推送。
+- 团队控制页：http://localhost:3000/host（只能在本机打开，经隧道访问返回 403）。显示公开网址、可全屏的加入二维码、Photon 登记名额、Gemini 状态、所有玩家和他们的舰桥。
+- 加入页：`<公开网址>/join`。玩家填昵称、手机号，选语言 → 服务器自动在 Photon 登记（用本机 CLI 登录的令牌，`~/.config/photon/credentials/production.json`，或环境变量 PHOTON_TOKEN）→ 显示二维码（SMSTO:专属号码:加入 1234）→ 手机发送后电脑页自动跳到他的舰桥。玩家发"再来一局"时舰桥自动跟到新一局。
+- 公开网址：启动时自动运行 `tools/cloudflared.exe`（Cloudflare 免费临时隧道，不用账号，已 gitignore），每次重启网址都会变，以控制页显示的为准。设 PUBLIC_URL 可改用固定网址，TUNNEL=0 关闭。只用手机的玩家开局时会在 iMessage 里收到舰桥链接。
 - 本地 demo（无需 Photon/Gemini）：`npm start`（Node ≥23.6 直接跑 .ts，或 `bun src/main.ts`），打开 http://localhost:3000/phone 用网页模拟 iMessage。
 - `npm test`：引擎、输入解析、去重、服务层测试。`npm run simulate`：各物品胜率平衡表。`npm run typecheck`：类型检查（需先 `npm install`）。
 - 代码规则：Node 原生 TS 只支持可擦除语法，禁止 enum / namespace / 构造函数参数属性；import 带 `.ts` 后缀。
@@ -51,7 +54,8 @@
 - 活动模式或检测到 AI 被限流时，自动切回编号选项。
 
 ## 网络与运行环境
-- 后端跑在团队笔记本上。其他人的电脑和手机通过内网穿透工具（Cloudflare Tunnel 或 ngrok）得到的公开 https 网址访问加入页和舰桥；校园 Wi-Fi 通常隔离设备，不能依赖局域网 IP。
+- 后端跑在团队笔记本上。其他人的电脑和手机通过 Cloudflare 临时隧道的公开 https 网址访问加入页和舰桥；校园 Wi-Fi 通常隔离设备，不能依赖局域网 IP。
+- 已验证（9/26）：Cloudflare 临时隧道会把 SSE 整段缓冲，网页一条都收不到（换 http2、关压缩、加填充都无效），普通请求正常。所以网页实时更新全部改用长轮询（`src/server/hub.ts`，`GET …/poll?after=<序号>`，最多挂起 25 秒），隧道里实测 0.2 秒送达。
 - 待确认：Photon 收消息是否不需要公开网址（回声测试时确认；后台有 Webhooks 设置）。
 - 照片处理（转 JPEG、生成装备卡）设并发上限，排队时全息扫描动画持续循环。
 - 演示时笔记本插电、关闭睡眠和锁屏；准备手机热点作为备用网络。
@@ -63,7 +67,8 @@
 - 玩家 iPhone 的 iMessage 身份必须和登记的手机号一致。
 - Pro 档没有完整的群聊接口；Photon Call 尚未开放；聊天背景自定义约需 30 秒同步，已弃用。
 - 已验证（9/26 真机）：iPhone 发来的照片是 `image/heic`（如 IMG_1685.HEIC，约 900KB），SDK 用 `attachment.read()` 取到 Buffer；程序可以连续发多条消息，也可以在玩家没发消息时主动推送（`imessage(app).space.create(号码)`）。
-- Photon CLI 有 `spectrum users add` 和 `users list`（返回 `assignedPhoneNumber`），加入页可以用它登记用户、拿专属号码（待接）。
+- 自动登记：`src/channel/photon-users.ts` 直接调 Photon 后台接口 `GET/POST https://app.photon.codes/api/projects/<id>/spectrum/users`（Bearer 用 CLI 登录令牌，没有刷新机制，失效后重新 `npx @photon-ai/cli login`）。同一号码复用已有登记，绝不删了重加（会换号）；同时最多 3 个登记请求；名额上限 PHOTON_USER_LIMIT（默认 100）。接口要求 email，我们用 `player-<哈希>@example.com` 占位。
+- 待验证（需要队友的新号码）：新登记的用户是否立刻能发消息、`assignedPhoneNumber` 是否立即返回。
 - spectrum-ts 在 Node 下也能跑，不依赖 Bun。Windows 上 `bun create spectrum-project` 会因为调不起 npx 而取不到密钥，要手动登录 CLI 后用 `photon projects secret --project <id> --json` 取。
 
 ## Gemini 已确认的事实（9/26 实测）
@@ -101,5 +106,7 @@
 - [x] 接入 Photon：`src/channel/photon.ts`，真机 iPhone 完整玩通一局（中文）
 - [x] 接入 Gemini：照片识别、自由回答解析、结局叙述、超时和限流兜底都已实测
 - [x] HEIC 转 JPEG：`src/media/image.ts`（纯 JS 的 heic-decode + jpeg-js，Windows 可用；长边缩到 1280；同时最多处理 2 张），iMessage 和网页模拟器两个入口都会转换；转换失败就保留原图交给 Gemini
+- [x] 电脑加入页 + 自动登记 + 配对码、团队控制页、Cloudflare 隧道、iMessage 自动发舰桥链接、舰桥跟随新一局
+- [ ] 用队友的新号码实测加入页完整流程
 - [ ] 存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

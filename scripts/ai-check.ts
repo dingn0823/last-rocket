@@ -10,7 +10,7 @@ import { loadAllContent } from '../src/engine/content.ts';
 import { actionCandidates, newRun, step } from '../src/engine/engine.ts';
 import type { Content, Outbound, RunState } from '../src/engine/types.ts';
 import { GameService } from '../src/game/service.ts';
-import { Hub } from '../src/server/sse.ts';
+import { Hub } from '../src/server/hub.ts';
 import { Store } from '../src/store/store.ts';
 
 const root = join(import.meta.dirname, '..');

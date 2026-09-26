@@ -1,16 +1,18 @@
-// Single long-running backend: channels + engine + web + SSE.
+// Single long-running backend: channels + engine + web + live updates + tunnel.
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { existsSync } from 'node:fs';
 import { AI } from './ai/ai.ts';
 import { Gemini } from './ai/gemini.ts';
 import { PhotonChannel } from './channel/photon.ts';
+import { PhotonUsers } from './channel/photon-users.ts';
 import { SimChannel } from './channel/sim.ts';
 import type { Channel, Inbound } from './channel/types.ts';
 import { loadAllContent } from './engine/content.ts';
 import { GameService } from './game/service.ts';
 import { createHttpServer } from './server/http.ts';
-import { Hub } from './server/sse.ts';
+import { Hub } from './server/hub.ts';
+import { findCloudflared, startTunnel } from './server/tunnel.ts';
 import { Store } from './store/store.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,8 +49,12 @@ const game = new GameService({
   publicUrl,
 });
 
-createHttpServer(game, hub, join(root, 'web')).listen(port, () => {
+// Join page registers players with Photon using this laptop's CLI login.
+const photonUsers = photon ? new PhotonUsers(process.env.PROJECT_ID!, Number(process.env.PHOTON_USER_LIMIT ?? 100)) : null;
+
+createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers }).listen(port, () => {
   console.log(`🚀 Last Rocket to the Moon — http://localhost:${port}`);
+  console.log(`   host console:    http://localhost:${port}/host`);
   console.log(`   phone simulator: http://localhost:${port}/phone`);
   console.log(`   AI: ${ai.gemini.enabled ? `Gemini (${ai.gemini.models.join(' → ')})` : 'off — keyword matching + numbered options'}`);
 });
@@ -60,7 +66,25 @@ if (photon) {
   console.log('   iMessage: off (no PROJECT_ID / PROJECT_SECRET in .env)');
 }
 
+// Public https URL: PUBLIC_URL if set, otherwise a Cloudflare quick tunnel (TUNNEL=0 to turn off).
+let tunnel: { stop(): void } | null = null;
+if (!publicUrl && process.env.TUNNEL !== '0') {
+  const bin = findCloudflared(root);
+  if (bin) {
+    tunnel = startTunnel(bin, port, (url) => {
+      game.publicUrl = url;
+      console.log(`🌍 public URL: ${url}   (join page: ${url}/join)`);
+    });
+  } else {
+    console.log('   public URL: off (put cloudflared.exe in tools/ or set PUBLIC_URL)');
+  }
+}
+if (photonUsers) {
+  void photonUsers.status().then((s) => console.log(s.ok ? `   Photon users: ${s.users}/${s.limit} registered` : `   Photon auto-registration unavailable: ${s.error} (run: npx @photon-ai/cli login)`));
+}
+
 async function shutdown() {
+  tunnel?.stop();
   await photon?.stop().catch(() => {});
   process.exit(0);
 }

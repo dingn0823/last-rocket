@@ -1,6 +1,6 @@
 // Web phone simulator channel: stands in for iMessage during development and as a demo fallback.
 import type { Outbound } from '../engine/types.ts';
-import type { Hub } from '../server/sse.ts';
+import type { Hub } from '../server/hub.ts';
 import type { Channel } from './types.ts';
 
 export class SimChannel implements Channel {
