@@ -86,3 +86,25 @@
 ## 彩排大屏
 
 双击 `last-rocket` 文件夹里的 **`Rehearse big screen.cmd`**（或运行 `node scripts/screen-demo.ts 14 3`），会在 http://localhost:3100/screen 启动一个独立的彩排服务器，浏览器自动打开大屏；关掉黑色窗口即停止。它（14 个机器人，每场飞行 3 分钟，自动场次），可以完整看到候机 → 倒数发射 → 飞行 → 颁奖 → 下一场。控制页是 http://localhost:3100/host。不连 Photon、不用隧道，也不碰真实存档，可以用来练习投屏和讲解。
+
+## Devpost 和演示视频（周日 12:00 PM 截止）
+
+- 每一栏的英文文案在 `docs/DEVPOST.md`，展示图在桌面「Last Rocket - Devpost\gallery」（3:2，按编号上传）。
+- 截图可以重新生成：先双击 `Rehearse big screen.cmd`，再运行 `node scripts/devpost-shots.ts <输出文件夹>`（临时服务器、虚构号码，不碰真实存档，也不连 Photon）。
+- 规则没有强制要视频，但建议录一个 90 秒–2 分钟的（评委看 Devpost 时笔记本不一定开着；决赛翻车时直接播放）。
+
+**最省事的拍法**：另一部手机横着拍，一镜到底，画面里同时有笔记本和 iPhone；最后接一段大屏彩排的录屏。
+
+| 时间 | 画面 | 旁白（英文） |
+|---|---|---|
+| 0:00–0:08 | 笔记本上的加入页 | "Earth has hours left. You can bring one thing with you. What would it be?" |
+| 0:08–0:20 | 填昵称和号码 → 扫码 → iMessage 点发送 → 笔记本变成舰桥 | "Join from any laptop: a nickname, your iPhone number, scan, send. No app to install." |
+| 0:20–0:40 | 给身边一样东西拍照发过去 → 舰桥全息扫描 → 装备卡 | "Snap one real thing. Gemini picks one of twelve fixed mods. My scarf becomes an Impact Pad." |
+| 0:40–1:05 | 第 1 关回数字；第 2 关直接打字（例：strap my scarf to the nose as a bumper） | "From stage two there are no menus. Just say what you'd do, and your item unlocks moves nobody else gets." |
+| 1:05–1:20 | 第 4 关的抉择 → 着陆 → 战绩卡和船长日志 | "Tear it apart to survive, or keep it and risk it? The ending remembers." |
+| 1:20–1:40 | 大屏彩排录屏：3·2·1 LIFTOFF → 一群火箭在飞 → 颁奖台 | "At events, everyone launches together on the big screen, with a podium every round." |
+| 1:40–1:55 | 结尾字卡：dingn0823.github.io/moon 和 GitHub 地址 | "iMessage through Photon Spectrum. The AI never touches the numbers. One laptop, zero dollars. Last Rocket to the Moon." |
+
+- 录电脑屏幕：Windows 11 自带「截图工具」，按 **Win + Shift + R**，框选区域后点"开始"。
+- 剪辑：开始菜单搜 **Clipchamp**（Windows 自带），把片段拖进去、剪掉多余部分、加结尾字卡，导出 1080p。
+- 上传：youtube.com → 右上角「创建」→「上传视频」→ 可见性选 **不公开（Unlisted）** → 复制链接，贴到 Devpost 的 Video demo link。

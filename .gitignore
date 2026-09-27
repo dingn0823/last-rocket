@@ -14,3 +14,5 @@ data/
 *.gif
 .claude/settings.local.json
 tools/
+# README slides: rendered UI screenshots with bot players, not photos
+!docs/img/*.jpg

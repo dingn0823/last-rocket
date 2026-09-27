@@ -31,7 +31,8 @@ function expectedPain(s: RunState, c: Content, a: Action): number {
   return ch.p * pain(s, c, ch.success.delta) + (1 - ch.p) * pain(s, c, ch.fail.delta) * 1.15;
 }
 
-function bestPick(s: RunState, c: Content): number {
+/** The upgrade a careful player takes (index into the offer). */
+export function bestPick(s: RunState, c: Content): number {
   const offer = s.offer ?? [];
   let best = 0;
   let bestScore = -Infinity;
@@ -48,6 +49,11 @@ function bestPick(s: RunState, c: Content): number {
     if (score > bestScore) { bestScore = score; best = i; }
   });
   return best;
+}
+
+/** The move a careful player makes: least expected damage, hidden gear moves included. */
+export function bestAction(s: RunState, c: Content): Action {
+  return eligibleActions(s, c).reduce((a, b) => (expectedPain(s, c, b) < expectedPain(s, c, a) ? b : a));
 }
 
 export function playRun(c: Content, seed: number, modId: string, policy: Policy): RunState {
@@ -68,9 +74,7 @@ export function playRun(c: Content, seed: number, modId: string, policy: Policy)
     if (s.phase === 'pick') feed({ type: 'pick', index: policy === 'thoughtful' ? bestPick(s, c) : Math.floor(roll() * (s.offer?.length ?? 1)) });
     else if (s.phase === 'action') {
       if (policy === 'thoughtful') {
-        const pool = eligibleActions(s, c);
-        const pick = pool.reduce((a, b) => (expectedPain(s, c, b) < expectedPain(s, c, a) ? b : a));
-        feed({ type: 'choose', actionId: pick.id });
+        feed({ type: 'choose', actionId: bestAction(s, c).id });
         continue;
       }
       const pool = policy === 'smart' ? eligibleActions(s, c) : visibleActions(s, c);
