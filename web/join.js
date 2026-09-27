@@ -17,7 +17,7 @@ function applyLang(l) {
   if (!$('cc').dataset.touched) $('cc').value = l === 'zh' ? '+86' : '+1';
 }
 
-/** "+13146856180" → "+1 (314) 685-6180"; "+8613817733221" → "+86 138 1773 3221". Easier to spot a typo. */
+/** "+13145550123" → "+1 (314) 555-0123"; "+8613800000000" → "+86 138 0000 0000". Easier to spot a typo. */
 function prettyPhone(p) {
   const d = p.replace(/\D/g, '');
   if (d.length === 11 && d.startsWith('1')) return `+1 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;

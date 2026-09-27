@@ -15,10 +15,10 @@
 ## 技术栈
 - TypeScript（Node ≥23.6 直接运行，也兼容 Bun）。一个常驻后端进程，同时负责 Spectrum 消息、游戏状态、网页服务、网页实时推送（长轮询）和 Cloudflare 隧道。
 - spectrum-ts，iMessage provider（Spectrum Cloud 共享号码）。
-- SQLite 存档。
+- 存档：JSON 文件（`src/store/store.ts`，放在 gitignore 的 `data/` 里），接口留好了，需要时换 SQLite。
 - Gemini 免费档：只用于照片识别归类、非数字自然语言解析、结局叙述。
-- 前端：Vite + TypeScript + CSS/SVG 动画。可选 model-viewer 显示预制 3D 模型。主体不用 PixiJS 或 Three.js。
-- 素材：Kenney.nl 的 CC0 素材；装备图是预制的静态图片。
+- 前端：原生 HTML/CSS/JS（`web/`，不用构建工具），动画全是 CSS/SVG。不用 PixiJS、Three.js 或 3D 模型。
+- 素材：图标用系统 emoji，其余都是手写 CSS/SVG，没有外部素材。
 
 ## 常用命令
 - 脚手架（官方后台提供）：`bun create spectrum-project@latest <name> --projectId <id> --providers imessage --yes`，会自动生成带密钥的 .env。

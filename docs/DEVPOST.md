@@ -70,10 +70,10 @@ The phone alone is enough to play the whole game. Everything below is optional:
   - narrate the ending.
 
   Every response is JSON, validated against the fixed lists, with hard timeouts (photo 10 s, parsing 3 s, narration 5 s). A rate-limited model is swapped for the next one, and if every model is limited the game shows numbered options instead.
-- **Input understanding runs in a fixed order:** number, then keywords, then AI, then one clarifying question, then numbered options. Most replies never reach the AI, so a typical run makes only 4–5 Gemini calls.
+- **Input understanding runs in a fixed order:** number, then keywords, then AI, then one clarifying question, then numbered options. Most replies never reach the AI, so a typical run makes only 4–5 Gemini calls. Typed item names are checked against about 1,300 everyday object names in English and Chinese first, so the game still knows what you brought when Gemini is busy.
 - **Reliability:** per-player serial queues, message dedupe and state versions (duplicate or late messages are dropped), saving before sending, and pure-JS HEIC → JPEG conversion.
 - **Web:** plain HTML, CSS, SVG and JavaScript, no framework. A Cloudflare quick tunnel gives the laptop a public https URL. A GitHub Pages short link follows the tunnel: the server rewrites it through the GitHub API whenever the tunnel URL changes.
-- **Balance by simulation:** a script plays thousands of runs with three player styles. Random choices land about 34% of the time, and a careful player lands about 91%. 50 automated tests cover the engine, input parsing, dedupe, rounds and the big screen.
+- **Balance by simulation:** a script plays thousands of runs with three player styles. Random choices land about 34% of the time, and a careful player lands about 91%. 53 automated tests cover the engine, input parsing, dedupe, rounds and the big screen.
 
 ## What we built during the build window
 Everything in the repo was built during the official build window (Sep 25–27). We started from a design doc after the prompt came out. The first commit landed Saturday afternoon, and by Saturday night friends were playing full runs on their own iPhones. We kept playtesting and building through the night: joining from a laptop, the bridge, the big screen with automatic rounds, the Chinese version and a rebalance.
