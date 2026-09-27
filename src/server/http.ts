@@ -200,13 +200,13 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
         // A newer run by the same player: tell the page to move on.
         const current = game.currentRun(rec.address);
         const next = current && current.state.runId !== rec.state.runId ? game.bridgePath(current.bridgeToken) : null;
-        return send(res, 200, { snapshot: game.snapshotFor(rec), recent, next, cursor: hub.cursor });
+        return send(res, 200, { snapshot: game.snapshotFor(rec), recent, next, round: game.rounds.snapshot(), cursor: hub.cursor });
       }
 
       // ---------- big screen (read-only: nicknames and gear, never photos) ----------
       if (get && path === '/api/screen/state') {
         return send(res, 200, {
-          ...game.screenState(url.searchParams.get('sim') === '1'),
+          ...game.screenState(url.searchParams.get('sim') === '1' || game.screenIncludesSim),
           stageNames: game.contents.en.stages.map((s) => s.name),
           joinUrl: `${game.publicUrl || 'http://localhost:' + (req.socket.localPort ?? 3000)}/join`,
           shortUrl: game.shortUrl || null,
@@ -216,6 +216,16 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
       if (get && path === '/api/screen/poll') return hub.poll('screen', after(url), res);
 
       // ---------- host console (laptop only) ----------
+      if (req.method === 'POST' && path === '/api/host/rounds') {
+        if (!isLocal(req)) return send(res, 403, { error: 'forbidden' });
+        const body = await readJson(req);
+        if (body.action === 'auto') game.rounds.setEnabled(true);
+        else if (body.action === 'off') game.rounds.setEnabled(false);
+        else if (body.action === 'launch') game.rounds.launchNow();
+        else if (body.action === 'end') game.rounds.endNow();
+        console.log(`[host] rounds: ${body.action} → ${game.rounds.phase}`);
+        return send(res, 200, game.rounds.snapshot());
+      }
       if (req.method === 'POST' && path === '/api/host/clear-screen') {
         if (!isLocal(req)) return send(res, 403, { error: 'forbidden' });
         game.clearScreen();
@@ -253,6 +263,7 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
           joinUrl: `${game.publicUrl || 'http://localhost:' + (req.socket.localPort ?? 3000)}/join`,
           ai: game.ai.gemini.enabled ? (game.ai.rateLimited ? 'rate-limited' : 'on') : 'off',
           eventMode: game.eventMode,
+          round: game.rounds.snapshot(),
           photon: photonUsers ? await photonUsers.status() : { ok: false, users: 0, limit: 0, error: 'iMessage is off' },
           runs,
         });

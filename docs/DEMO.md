@@ -52,19 +52,28 @@
 - 笔记本屏幕：留着控制页。
 
 **开场前**
-- [ ] 控制页点 **🧹 Clear big screen**，排行榜和战报清零（玩家存档不会被删）。
 - [ ] 控制页点 **👥 Switch to event mode**（几十人同时玩时，自由回答改成编号选项，避免 Gemini 免费额度被用完）。
+- [ ] 控制页点 **🔁 Turn on auto rounds**（自动场次）。之后一切自动运转，不用再点任何东西。
 - [ ] 确认名额够用：控制页显示的 x/100。
 
-**流程（约 3–4 分钟）**
+**自动场次怎么走（全自动）**
+1. 大屏显示 NEXT LAUNCH · READY。第一个人扫码加入后，自动开始 **30 秒登船倒计时**，这段时间扫码的人都在同一班，名字围着地球出现。
+2. 倒计时最后 3 秒大屏全屏 3·2·1 **LIFTOFF!**，名单上所有人同时开局，**10 分钟**飞行倒计时开始（最后 1 分钟变橙，最后 10 秒变红闪烁）。
+3. 中途扫码的人直接开玩，计入本场。
+4. 时间到自动播放**颁奖典礼**（🥇🥈🥉 领奖台、彩纸），约 45 秒。手机不发名次，只看大屏。
+5. 然后自动开下一场，大屏清零。
+- 应急按钮：**🚀 Launch now**（人齐了不想等）、**🏁 End round now**（时间不够提前颁奖）。
+- 时长在 `.env` 改：`ROUND_BOARDING_SECONDS`、`ROUND_MINUTES`、`ROUND_CEREMONY_SECONDS`；`ROUNDS=auto` 让服务器一启动就进入自动场次。
+
+**流程（约 3–4 分钟的讲解）**
 1. 开场问全场：*"If Earth ended tomorrow and you could bring one thing, what would it be?"*
-2. 指向大屏："Scan the code with your iPhone camera, or go to **dingn0823.github.io/moon**."
-3. 观众在手机上填号码 → 点"打开信息"→ 发送 → 在 iMessage 里玩。大屏上会出现他们的名字，开始向月球移动。
-4. 讲解时让大屏自己跑：实时战报会刷出"谁带了什么""谁触发了组合技""谁着陆了"。
-5. 收尾时指向排行榜（💎 表示带着自己的物品一起着陆）。
+2. 指向大屏："Scan the code with your iPhone camera, or go to **dingn0823.github.io/moon**. We launch together in 30 seconds."
+3. 观众在手机上填号码 → 点"打开信息"→ 发送 → 收到"你已进入发射名单"。
+4. 一起看 3·2·1 LIFTOFF，然后讲解时让大屏自己跑：火箭沿航线飞，谁触发组合技、拿到传说装备、着陆，他的名字会亮起来并有特效。
+5. 如果讲解时间短于 10 分钟，讲完点 **🏁 End round now** 直接颁奖。
 
 **提前录好一段演示视频**，现场网络或 iMessage 出问题时直接放视频。
 
 ## 彩排大屏
 
-`node scripts/screen-demo.ts` 会在 http://localhost:3100/screen 启动一个独立的彩排服务器，十几个机器人玩家陆续加入闯关。不连 Photon、不用隧道，也不碰真实存档，可以用来练习投屏和讲解。
+`node scripts/screen-demo.ts 14 3` 会在 http://localhost:3100/screen 启动一个独立的彩排服务器（14 个机器人，每场飞行 3 分钟，自动场次），可以完整看到候机 → 倒数发射 → 飞行 → 颁奖 → 下一场。控制页是 http://localhost:3100/host。不连 Photon、不用隧道，也不碰真实存档，可以用来练习投屏和讲解。

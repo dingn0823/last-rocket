@@ -25,6 +25,7 @@
 - 启动：`bun start`。回声测试：用已登记的手机给分配的号码发消息，应收到 `echo:` 开头的回复。
 - 真机 iMessage：`.env` 里有 `PROJECT_ID`/`PROJECT_SECRET` 时 `npm start` 会自动连上 Photon（日志出现 `[photon] connected`）；设 `PHOTON=0` 可关闭。查某个玩家的专属号码：`npx @photon-ai/cli spectrum users list --json`（需先 `npx @photon-ai/cli login`，项目 id 用环境变量 `PHOTON_PROJECT_ID`）。`node scripts/photon-probe.ts` 给最近的 iMessage 玩家发两条测试消息，验证主动推送。
 - 大屏汇总页：http://localhost:3000/screen （决赛投屏用；控制页有按钮）。全场玩家在地月航线上的位置、英文实时战报、最佳着陆榜、加入二维码和短网址。不显示照片；网页模拟器的局默认不上大屏（加 ?sim=1 才显示）；控制页 🧹 Clear big screen 让排行榜和战报从零开始。彩排：`node scripts/screen-demo.ts`（:3100，机器人玩家，临时数据）。
+- 自动场次（决赛用，控制页 🔁 开关或 .env `ROUNDS=auto`）：第一个人加入 → 30 秒登船 → 所有人同时发射 → 10 分钟飞行（中途加入直接开玩）→ 45 秒颁奖（前三名，按本场最好的着陆分）→ 自动开下一场，大屏只显示当前场次。代码在 `src/game/round.ts`，候机时玩家的局停在 phase `new`、`RunRecord.heldRound` 记报名场次。手机不发名次。
 - 演示步骤、话术、兜底见 docs/DEMO.md。
 - 团队控制页：http://localhost:3000/host（只能在本机打开，经隧道访问返回 403）。显示公开网址、可全屏的加入二维码、Photon 登记名额、Gemini 状态、所有玩家和他们的舰桥。
 - 加入页：`<公开网址>/join`。玩家填昵称、手机号，选语言 → 服务器自动在 Photon 登记（用本机 CLI 登录的令牌，`~/.config/photon/credentials/production.json`，或环境变量 PHOTON_TOKEN）→ 显示二维码（SMSTO:专属号码:加入 1234）→ 手机发送后电脑页自动跳到他的舰桥。玩家发"再来一局"时舰桥自动跟到新一局。
@@ -115,5 +116,6 @@
 - [x] 电脑加入页 + 自动登记 + 配对码、团队控制页、Cloudflare 隧道、iMessage 自动发舰桥链接、舰桥跟随新一局
 - [x] 队友用全新号码走通加入页 → 自动登记 → 扫码配对 → 中文完整一局
 - [x] 大屏汇总页、控制页一键切换活动模式、清空大屏、演示清单 docs/DEMO.md
+- [x] 自动场次（登船倒计时、一起发射、限时、颁奖、循环）+ 大屏视觉升级（弧形航线、尾焰火箭、星空、事件特效、3·2·1 发射、领奖台彩纸；人多时只亮出有动静的人和前三名）
 - [ ] 存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

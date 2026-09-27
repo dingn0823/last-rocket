@@ -18,6 +18,10 @@ export interface RunRecord {
   transcript: TranscriptEntry[];
   /** Gemini requests made during this run. */
   aiCalls?: number;
+  /** Set when the run is waiting on a round's launch list (automatic rounds). */
+  heldRound?: number;
+  /** Paired with a computer's join page (that page already shows the bridge). */
+  paired?: boolean;
 }
 
 export interface Player {

@@ -48,7 +48,13 @@ const game = new GameService({
   channels,
   eventMode: process.env.EVENT_MODE === '1',
   publicUrl,
+  rounds: {
+    boardingMs: Number(process.env.ROUND_BOARDING_SECONDS ?? 30) * 1000,
+    flightMs: Number(process.env.ROUND_MINUTES ?? 10) * 60_000,
+    ceremonyMs: Number(process.env.ROUND_CEREMONY_SECONDS ?? 45) * 1000,
+  },
 });
+if (process.env.ROUNDS === 'auto') game.rounds.setEnabled(true);
 game.shortUrl = (process.env.SHORTLINK_URL ?? '').replace(/\/$/, '');
 
 // Join page registers players with Photon using this laptop's CLI login.

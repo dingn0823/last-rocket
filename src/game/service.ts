@@ -12,7 +12,8 @@ import type { Content, EngineInput, Outbound, RunState } from '../engine/types.t
 import type { Hub } from '../server/hub.ts';
 import type { Player, RunRecord, Store } from '../store/store.ts';
 import { JoinRegistry } from './join.ts';
-import { feedFor, ScreenFeed, screenState } from './screen.ts';
+import { RoundClock, type PodiumEntry, type RoundConfig } from './round.ts';
+import { feedFor, ScreenFeed, screenId, screenState } from './screen.ts';
 
 export interface ServiceOptions {
   contents: Record<Lang, Content>;
@@ -22,6 +23,8 @@ export interface ServiceOptions {
   channels: Channel[];
   eventMode: boolean;
   publicUrl: string;
+  /** Automatic round timings (event mode for the finals). */
+  rounds?: Partial<RoundConfig>;
 }
 
 interface Decision {
@@ -46,6 +49,7 @@ export class GameService {
   readonly feed = new ScreenFeed();
   /** Big screen shows runs from this moment on; the host resets it before the finals. */
   screenSince = 0;
+  readonly rounds: RoundClock;
   private channels = new Map<string, Channel>();
   private queues = new Map<string, Promise<void>>();
 
@@ -57,6 +61,14 @@ export class GameService {
     this.eventMode = opts.eventMode;
     this.publicUrl = opts.publicUrl;
     for (const ch of opts.channels) this.channels.set(ch.name, ch);
+    this.rounds = new RoundClock(
+      { boardingMs: 30_000, flightMs: 10 * 60_000, ceremonyMs: 45_000, ...opts.rounds },
+      {
+        onLaunch: (no) => this.launchHeld(no),
+        onFinish: (w) => this.podiumFor(w),
+        onChange: () => this.hub.publish('screen', 'round', {}),
+      },
+    );
   }
 
   /** Numbered options everywhere when in event mode or when the AI is rate-limited. */
@@ -147,6 +159,7 @@ export class GameService {
       if (existing) existing.state = { ...existing.state, processed: [...existing.state.processed, msg.msgId].slice(-PROCESSED_CAP) };
       if (existing) this.store.saveRun(existing);
       rec = this.createRun(player, detectLang(msg.text));
+      rec.paired = true;
       join.pairedPath = this.bridgePath(rec.bridgeToken);
       this.hub.publish(`join:${join.token}`, 'paired', { path: join.pairedPath });
       console.log(`[join] paired code ${join.code} → run ${rec.state.runId}`);
@@ -160,6 +173,8 @@ export class GameService {
       rec = this.createRun(player, detectLang(msg.text));
     }
     rec.transcript.push({ dir: 'in', at: Date.now(), msg: { text: msg.text, imageUrl: msg.image?.url } });
+    // Automatic rounds: new players wait on the launch list and all lift off together.
+    if (this.rounds.holding && rec.state.phase === 'new') return this.hold(rec, msg.msgId);
     const startVersion = rec.state.version;
     const callsBefore = this.ai.calls;
     const decision: Decision = rec.state.phase === 'new' ? { input: { type: 'start' } } : await this.decide(rec, msg);
@@ -179,9 +194,7 @@ export class GameService {
     result.state.processed = [...result.state.processed, msg.msgId].slice(-PROCESSED_CAP);
     rec.state = result.state;
     // Phone-only players get a link to watch their rocket (the join-page flow already has it open).
-    if (decision.input.type === 'start' && !join && this.publicUrl && rec.channel !== 'sim') {
-      result.out.push({ t: 'text', text: fmt(c.copy.bridgeLink, { url: this.bridgeUrl(rec.bridgeToken) }) });
-    }
+    if (decision.input.type === 'start') this.addStartExtras(rec, result.out, c);
     for (const o of result.out) rec.transcript.push({ dir: 'out', at: Date.now(), msg: o });
 
     // Save first, then send. A failed send never re-runs the step.
@@ -269,14 +282,83 @@ export class GameService {
     }
   }
 
+  /** Phone-only players get their bridge link; late arrivals learn a round is already flying. */
+  private addStartExtras(rec: RunRecord, out: Outbound[], c: Content): void {
+    if (!rec.paired && this.publicUrl && rec.channel !== 'sim') out.push({ t: 'text', text: fmt(c.copy.bridgeLink, { url: this.bridgeUrl(rec.bridgeToken) }) });
+    if (this.rounds.phase === 'flying') {
+      const minutes = Math.max(1, Math.ceil(this.rounds.flightLeftMs() / 60_000));
+      out.unshift({ t: 'text', text: fmt(c.copy.roundLate, { minutes }) });
+    }
+  }
+
+  /** Put a fresh run on the launch list and tell the player when liftoff is. */
+  private async hold(rec: RunRecord, msgId: string): Promise<void> {
+    const c = this.contentFor(rec.state);
+    const firstTime = rec.heldRound === undefined;
+    rec.heldRound = this.rounds.phase === 'ceremony' ? this.rounds.no + 1 : this.rounds.no;
+    if (firstTime) {
+      if (this.rounds.phase === 'ceremony') this.rounds.noteHeld();
+      this.rounds.playerBoarded();
+      this.feed.push([{ at: Date.now(), icon: '🎫', text: `${this.nicknameOf(rec)} is on the launch list`, kind: 'board', pid: screenId(rec) }]);
+    }
+    rec.state = { ...rec.state, processed: [...rec.state.processed, msgId].slice(-PROCESSED_CAP) };
+    const seconds = Math.max(1, Math.ceil(this.rounds.launchInMs() / 1000));
+    const out: Outbound[] = [{ t: 'text', text: fmt(c.copy.lobbyWait, { seconds }) }];
+    rec.transcript.push({ dir: 'out', at: Date.now(), msg: out[0] });
+    this.store.saveRun(rec);
+    await this.deliver(rec, out);
+  }
+
+  /** Liftoff: everyone on this round's launch list starts at once (each in their own queue). */
+  private launchHeld(no: number): void {
+    const minutes = Math.round(this.rounds.cfg.flightMs / 60_000);
+    for (const rec of this.store.allRuns()) {
+      if (rec.heldRound !== no || rec.state.phase !== 'new') continue;
+      if (this.store.getPlayer(rec.address)?.currentRunId !== rec.state.runId) continue;
+      void this.enqueue(`${rec.channel}:${rec.address}`, async () => {
+        const latest = this.store.getRun(rec.state.runId);
+        if (!latest || latest.state.phase !== 'new') return;
+        const c = this.contentFor(latest.state);
+        const result = step(latest.state, { type: 'start' }, c, { numbered: this.numberedMode, now: Date.now() });
+        result.out.unshift({ t: 'text', text: fmt(c.copy.roundGo, { minutes }) });
+        this.addStartExtras(latest, result.out, c);
+        latest.state = result.state;
+        for (const o of result.out) latest.transcript.push({ dir: 'out', at: Date.now(), msg: o });
+        this.store.saveRun(latest);
+        await this.deliver(latest, result.out, true);
+      });
+    }
+  }
+
+  /** Best landing per player inside the round window, top three. */
+  private podiumFor(w: { no: number; openedAt: number; endsAt: number }): PodiumEntry[] {
+    const s = screenState(this.store, this.contents.en, (r) => this.nicknameOf(r), { since: w.openedAt, until: w.endsAt, includeSim: this.screenIncludesSim, round: w.no });
+    const inRound = (r: RunRecord) => r.state.createdAt >= w.openedAt || r.heldRound === w.no;
+    this.rounds.participants = new Set(this.store.allRuns().filter((r) => inRound(r) && r.state.phase !== 'new' && (r.channel !== 'sim' || this.screenIncludesSim)).map((r) => r.address)).size;
+    console.log(`[round] #${w.no} finished: ${s.leaderboard.length} landed, podium: ${s.leaderboard.slice(0, 3).map((b) => `${b.nickname} ${b.score}`).join(', ') || 'none'}`);
+    return s.leaderboard.slice(0, 3).map((b) => ({ nickname: b.nickname, score: b.score, icon: b.icon, item: b.item, kept: b.kept }));
+  }
+
+  /** Rehearsals with bots or the simulator can put test runs on the big screen. */
+  screenIncludesSim = false;
+
   nicknameOf(rec: RunRecord): string {
     const n = this.store.getPlayer(rec.address)?.nickname;
     return n && n !== 'Crew' ? n : `Crew ${rec.state.runId.slice(0, 3).toUpperCase()}`;
   }
 
   /** Everyone at once, for the big screen. */
-  screenState(includeSim = false) {
-    return { ...screenState(this.store, this.contents.en, (r) => this.nicknameOf(r), { since: this.screenSince, includeSim }), feed: this.feed.recent() };
+  screenState(includeSim = this.screenIncludesSim) {
+    // With automatic rounds the screen shows only the current round; otherwise since the last manual clear.
+    const since = this.rounds.enabled ? this.rounds.openedAt : this.screenSince;
+    return {
+      // During the ceremony the board matches the podium: landings after the bell don't count.
+      ...screenState(this.store, this.contents.en, (r) => this.nicknameOf(r), {
+        since, includeSim, until: this.rounds.phase === 'ceremony' ? this.rounds.endsAt : undefined, round: this.rounds.enabled ? this.rounds.no : undefined,
+      }),
+      feed: this.feed.recent(since),
+      round: this.rounds.snapshot(),
+    };
   }
 
   clearScreen(): void {
@@ -287,7 +369,7 @@ export class GameService {
 
   private async deliver(rec: RunRecord, out: Outbound[], started = false): Promise<void> {
     this.hub.publish(`bridge:${rec.bridgeToken}`, 'update', { snapshot: this.snapshotFor(rec), out });
-    const items = rec.channel === 'sim' ? [] : feedFor(this.contents.en, this.nicknameOf(rec), rec.state, out, started);
+    const items = rec.channel === 'sim' && !this.screenIncludesSim ? [] : feedFor(this.contents.en, this.nicknameOf(rec), rec, out, started);
     this.feed.push(items);
     this.hub.publish('screen', 'update', { feed: items });
     try {

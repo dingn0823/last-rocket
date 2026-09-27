@@ -4,6 +4,23 @@ import { escapeHtml } from './fx.js';
 const $ = (id) => document.getElementById(id);
 let lastJoinUrl = '';
 let eventMode = false;
+let roundPhase = 'off';
+let round = null;
+let offset = 0;
+const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+function roundText() {
+  if (!round) return '…';
+  const now = Date.now() + offset;
+  switch (round.phase) {
+    case 'off': return 'off (free play)';
+    case 'waiting': return `#${round.no} · waiting for the first player`;
+    case 'boarding': return `#${round.no} · boarding, liftoff in ${mmss(round.boardingEndsAt - now)}`;
+    case 'flying': return `#${round.no} · flying, ${mmss(round.endsAt - now)} left`;
+    case 'ceremony': return `#${round.no} · podium, next round in ${mmss(round.ceremonyEndsAt - now)}`;
+  }
+  return round.phase;
+}
+setInterval(() => round && ($('sRound').textContent = roundText()), 500);
 
 function ago(t) {
   const s = Math.round((Date.now() - t) / 1000);
@@ -42,6 +59,14 @@ async function refresh() {
   set('sAi', s.ai, s.ai === 'on' ? 'ok' : s.ai === 'rate-limited' ? 'warn' : 'bad');
   set('sMode', s.eventMode ? 'EVENT (numbered options)' : 'single player (free text)', s.eventMode ? 'warn' : 'ok');
   eventMode = s.eventMode;
+  round = s.round;
+  offset = s.round.now - Date.now();
+  roundPhase = s.round.phase;
+  $('sRound').textContent = roundText();
+  $('sRound').className = roundPhase === 'off' ? '' : 'ok';
+  $('roundBtn').textContent = roundPhase === 'off' ? '🔁 Turn on auto rounds' : '⏹ Turn off rounds (free play)';
+  $('launchBtn').disabled = !(roundPhase === 'waiting' || roundPhase === 'boarding');
+  $('endBtn').disabled = roundPhase !== 'flying';
   $('modeBtn').textContent = s.eventMode ? '↩ Back to free-text mode' : '👥 Switch to event mode (many players)';
   $('runs').innerHTML = s.runs.length
     ? s.runs.map((r) => `
@@ -62,6 +87,14 @@ $('modeBtn').onclick = async () => {
   $('modeBtn').disabled = false;
   refresh();
 };
+const roundAction = async (action, ask) => {
+  if (ask && !confirm(ask)) return;
+  await fetch('/api/host/rounds', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ action }) });
+  refresh();
+};
+$('roundBtn').onclick = () => roundAction(roundPhase === 'off' ? 'auto' : 'off', roundPhase === 'off' ? '' : 'Turn off rounds? Players waiting on the launch list will start when they next text.');
+$('launchBtn').onclick = () => roundAction('launch');
+$('endBtn').onclick = () => roundAction('end', 'End this round now and show the podium?');
 $('clearBtn').onclick = async () => {
   if (!confirm('Clear the big screen? Leaderboard and feed start from zero (no runs are deleted).')) return;
   await fetch('/api/host/clear-screen', { method: 'POST' });
