@@ -91,6 +91,7 @@ describe('automatic rounds', () => {
     assert.equal(game.currentRun('+1005')!.state.phase, 'new', 'held during the ceremony');
     await sleep(200);
     assert.equal(game.rounds.phase, 'boarding', 'goes straight to boarding for them');
+    assert.equal(game.screenState().counts.boarding, 1, 'on the big screen\'s launch list during the countdown');
     await sleep(200);
     assert.equal(game.currentRun('+1005')!.state.phase, 'await_item');
     // Boarded during the last ceremony, lands in this round: it must count for this round's board.

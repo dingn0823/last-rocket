@@ -117,9 +117,11 @@ export function screenState(store: Store, en: Content, nick: (r: RunRecord) => s
   const best = new Map<string, BoardEntry>();
   for (const r of store.allRuns()) {
     const s = r.state;
-    if (s.updatedAt < filter.since || (r.channel === 'sim' && !filter.includeSim)) continue;
+    // Boarded during the last ceremony: last touched before this round opened, but on its launch list.
+    const heldHere = filter.round !== undefined && r.heldRound === filter.round;
+    if ((s.updatedAt < filter.since && !heldHere) || (r.channel === 'sim' && !filter.includeSim)) continue;
     const icon = s.item ? (en.mods.find((m) => m.id === s.item!.modId)?.icon ?? '📦') : '🧑‍🚀';
-    const member = s.createdAt >= filter.since || (filter.round !== undefined && r.heldRound === filter.round);
+    const member = s.createdAt >= filter.since || heldHere;
     const counts = member && (!filter.until || s.updatedAt <= filter.until + 3000);
     if (s.ending?.kind === 'success' && counts) {
       const prev = best.get(r.address);
