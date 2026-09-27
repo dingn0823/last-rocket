@@ -9,6 +9,7 @@ import type { Channel } from '../src/channel/types.ts';
 import { loadAllContent } from '../src/engine/content.ts';
 import { newRun, step } from '../src/engine/engine.ts';
 import { classifyByKeyword, interpretAction, interpretConfirm, interpretPick } from '../src/engine/interpret.ts';
+import { withArticle } from '../src/engine/text.ts';
 import type { Content, EngineInput, Outbound, RunState } from '../src/engine/types.ts';
 import { GameService } from '../src/game/service.ts';
 import { Hub } from '../src/server/hub.ts';
@@ -326,6 +327,35 @@ describe('interpret', () => {
     for (const [text, mod] of cases) assert.equal(classifyByKeyword(zh, text)?.mod.id, mod, text);
     assert.equal(classifyByKeyword(content, 'a coke')?.mod.id, 'fuel_side_pod');
     assert.equal(classifyByKeyword(content, 'keyboard')?.mod.id, 'signal_booster', 'key must not match keyboard');
+  });
+
+  it('what people carry around a hackathon venue is understood without AI', () => {
+    const cases: [string, string][] = [
+      ['a slice of pizza', 'fuel_side_pod'], ['bag of chips', 'fuel_side_pod'], ['一包辣条', 'fuel_side_pod'], ['granola bar', 'fuel_side_pod'],
+      ['hand sanitizer', 'fuel_side_pod'], ['a banana', 'water_recycler'], ['milk tea', 'water_recycler'], ['奶茶', 'water_recycler'], ['tissues', 'water_recycler'],
+      ['basketball', 'emergency_air_tank'], ['矿泉水', 'emergency_air_tank'], ['stress ball', 'impact_pad'], ['口罩', 'impact_pad'], ['quarter zip', 'impact_pad'],
+      ['hand warmer', 'thermal_blanket'], ['暖宝宝', 'thermal_blanket'], ['a notebook', 'landing_airbag'], ['一本书', 'landing_airbag'], ['sticky notes', 'landing_airbag'],
+      ['my student ID', 'hatch_wrench'], ['学生卡', 'hatch_wrench'], ['claw clip', 'hatch_wrench'], ['lip balm', 'weld_pen'], ['润唇膏', 'weld_pen'], ['stickers', 'weld_pen'],
+      ['sunglasses', 'nav_antenna'], ['眼镜', 'nav_antenna'], ['webcam', 'signal_booster'], ['手环', 'signal_booster'], ['power strip', 'backup_battery'],
+      ['插线板', 'backup_battery'], ['raspberry pi', 'backup_battery'],
+      // Longer phrases beat the words inside them; colors are not items.
+      ['my orange hoodie', 'impact_pad'], ['phone case', 'impact_pad'], ['laptop bag', 'emergency_air_tank'], ['tea bag', 'water_recycler'],
+      ['trash can', 'emergency_air_tank'], ['paper towels', 'water_recycler'], ['key ring', 'hatch_wrench'], ['string lights', 'backup_battery'],
+      ['apple watch', 'signal_booster'], ['苹果电脑', 'backup_battery'], ['苹果手机', 'signal_booster'], ['书包', 'emergency_air_tank'], ['纸巾', 'water_recycler'],
+      ['贴纸', 'weld_pen'], ['面包板', 'backup_battery'], ['VR眼镜', 'signal_booster'],
+    ];
+    for (const [text, mod] of cases) assert.equal(classifyByKeyword(zh, text)?.mod.id, mod, text);
+  });
+
+  it('item names read naturally: a thermos, an eraser, some rice, these chips', () => {
+    assert.equal(withArticle('thermos'), 'a thermos');
+    assert.equal(withArticle('eraser'), 'an eraser');
+    assert.equal(withArticle('rice'), 'some rice');
+    assert.equal(withArticle('trail mix'), 'some trail mix');
+    assert.equal(withArticle('iced coffee'), 'some iced coffee');
+    assert.equal(withArticle('chips'), 'chips');
+    assert.equal(withArticle('snickers'), 'a snickers');
+    assert.equal(withArticle('米饭', 'zh'), '米饭');
   });
 });
 

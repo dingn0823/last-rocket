@@ -17,7 +17,16 @@ export function detectLang(text: string | undefined): Lang {
 }
 
 /** Singular nouns that end in -s like a plural. */
-const SINGULAR_S = new Set(['thermos', 'lens', 'canvas', 'atlas', 'gas', 'chaos', 'cosmos', 'pancreas', 'rhinoceros']);
+const SINGULAR_S = new Set(['thermos', 'lens', 'canvas', 'atlas', 'gas', 'chaos', 'cosmos', 'pancreas', 'rhinoceros', 'snickers']);
+
+/** Uncountable things take "some", not "a" ("some rice", "some trail mix"). Matched on the last word. */
+const MASS = new Set([
+  'water', 'milk', 'juice', 'tea', 'coffee', 'oil', 'glue', 'tape', 'foil', 'chalk', 'wrap', 'paper', 'cardboard', 'foam', 'yarn',
+  'ice', 'rice', 'bread', 'toast', 'cereal', 'oatmeal', 'yogurt', 'cheese', 'cream', 'mix', 'butter', 'nutella', 'honey', 'sugar',
+  'salt', 'ketchup', 'sriracha', 'sauce', 'soup', 'gatorade', 'powerade', 'popcorn', 'candy', 'chocolate', 'gum', 'sushi', 'ramen',
+  'goldfish', 'cash', 'money', 'luggage', 'jewelry', 'lotion', 'sunscreen', 'deodorant', 'medicine', 'ibuprofen', 'mouthwash',
+  'sanitizer', 'toothpaste', 'polish', 'white-out', 'whiteout', 'solder',
+]);
 
 /** English-only: plural-looking labels ("keys", "standard supplies"). */
 export function isPluralLabel(label: string): boolean {
@@ -28,6 +37,7 @@ export function isPluralLabel(label: string): boolean {
 export function withArticle(label: string, lang: Lang = 'en'): string {
   const l = label.trim();
   if (lang === 'zh' || /^(a|an|the|my|your|some)\s/i.test(l) || isPluralLabel(l)) return l;
+  if (MASS.has(l.toLowerCase().split(/\s+/).pop() ?? '')) return `some ${l}`;
   return (/^[aeiou]/i.test(l) ? 'an ' : 'a ') + l;
 }
 
