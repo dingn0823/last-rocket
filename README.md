@@ -4,6 +4,8 @@ HackWashU 2026 · theme "Fly Me to the Moon" · Photon Bonus Track
 
 Earth has hours left. You can bring **one thing** with you. Snap a photo of whatever is next to you, and the ship AI rigs it into gear for the trip. It changes which moves you can make over 5 stages from Earth to the Moon, and the ending remembers whether it survived.
 
+**Demo video (2:36):** https://youtu.be/tg1oPfT087w
+
 **Play:** https://dingn0823.github.io/moon (live while our laptop is running at the event). You'll need an iPhone with iMessage. The first text picks the language: "join" for English, "加入" for Chinese.
 
 ![Last Rocket to the Moon](docs/img/cover.jpg)
