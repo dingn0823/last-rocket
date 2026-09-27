@@ -27,7 +27,7 @@
 - 大屏汇总页：http://localhost:3000/screen （决赛投屏用；控制页有按钮）。全场玩家在地月航线上的位置、英文实时战报、最佳着陆榜、加入二维码和短网址。不显示照片；网页模拟器的局默认不上大屏（加 ?sim=1 才显示）；控制页 🧹 Clear big screen 让排行榜和战报从零开始。彩排：`node scripts/screen-demo.ts`（:3100，机器人玩家，临时数据）。
 - 自动场次（决赛用，控制页 🔁 开关或 .env `ROUNDS=auto`）：第一个人加入 → 30 秒登船 → 所有人同时发射 → 10 分钟飞行（中途加入直接开玩）→ 45 秒颁奖（前三名，按本场最好的着陆分）→ 自动开下一场，大屏只显示当前场次。代码在 `src/game/round.ts`，候机时玩家的局停在 phase `new`、`RunRecord.heldRound` 记报名场次。手机不发名次。
 - 演示步骤、话术、兜底见 docs/DEMO.md。
-- Devpost：每一栏的英文文案在 docs/DEVPOST.md（含官方提交要求）。截图：先开彩排，再 `node scripts/devpost-shots.ts <输出文件夹>`（:3400 临时服务器，脚本像认真的玩家一样打字玩到着陆；加入页登记用虚构的 555 号码，不连 Photon；`ONLY=phone,join,screen` 只拍其中几部分）。演示视频：`node scripts/demo-video.ts <out.webm>`（:3400 一名玩家的故事 + :3401 机器人大屏，scripts/demo-video.html 负责排版、字幕、WebAudio 原创配乐，用后台 Edge 录自己的标签页；约 8 分钟出 1080p WebM，会自动补上时长和拖动索引）。
+- Devpost：每一栏的英文文案在 docs/DEVPOST.md（含官方提交要求）。截图：先开彩排，再 `node scripts/devpost-shots.ts <输出文件夹>`（:3400 临时服务器，脚本像认真的玩家一样打字玩到着陆；加入页登记用虚构的 555 号码，不连 Photon；`ONLY=phone,join,screen` 只拍其中几部分）。演示视频：`node scripts/demo-video.ts <out.webm>`（:3400 一名玩家的故事 + :3401 机器人大屏，scripts/demo-video.html 负责排版、字幕、WebAudio 原创配乐，用后台 Edge 录自己的标签页；约 9 分钟出 1080p WebM，会自动补上时长和拖动索引）。讲解是 Gemini TTS（gemini-3.8-flash-tts，免费额度可用，默认声音 Puck），讲解词在脚本的 `LINES`，镜头会等一句讲完才切。
 - 团队控制页：http://localhost:3000/host（只能在本机打开，经隧道访问返回 403）。显示公开网址、可全屏的加入二维码、Photon 登记名额、Gemini 状态、所有玩家和他们的舰桥。
 - 加入页：`<公开网址>/join`。玩家填昵称、手机号，选语言 → 服务器自动在 Photon 登记（用本机 CLI 登录的令牌，`~/.config/photon/credentials/production.json`，或环境变量 PHOTON_TOKEN）→ 显示二维码（SMSTO:专属号码:加入 1234）→ 手机发送后电脑页自动跳到他的舰桥。玩家发"再来一局"时舰桥自动跟到新一局。
 - 公开网址：启动时自动运行 `tools/cloudflared.exe`（Cloudflare 免费临时隧道，不用账号，已 gitignore），每次重启网址都会变，以控制页显示的为准。设 PUBLIC_URL 可改用固定网址，TUNNEL=0 关闭。只用手机的玩家开局时会在 iMessage 里收到舰桥链接。
@@ -120,7 +120,7 @@
 - [x] 大屏汇总页、控制页一键切换活动模式、清空大屏、演示清单 docs/DEMO.md
 - [x] 自动场次（登船倒计时、一起发射、限时、颁奖、循环）+ 大屏视觉升级（弧形航线、尾焰火箭、星空、事件特效、3·2·1 发射、领奖台彩纸；人多时只亮出有动静的人和前三名）
 - [x] Devpost 文案和 3:2 展示图（9/26 夜，桌面「Last Rocket - Devpost」）
-- [x] 演示视频自动录好（1:48，桌面「Last Rocket - Devpost」）
+- [x] 演示视频自动录好（1:59，带 AI 英文讲解，桌面「Last Rocket - Devpost」）
 - [ ] 上传 YouTube（不公开），填进 Devpost，周日 12:00 PM 前提交
 - [ ] 存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

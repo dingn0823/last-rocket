@@ -3,11 +3,13 @@
 // bot players and automatic rounds. scripts/demo-video.html lays them out with captions and an original
 // soundtrack and records its own tab (VP9/Opus WebM, 1920x1080), pausing through the boring waits.
 // Temp saves only. Registration is a stub with a fictional 555 number, so nothing reaches Photon.
-// Gemini (if .env has a key) writes the captain's log.
+// Gemini (if .env has a key) writes the captain's log and speaks the narration (Gemini TTS, VOICE=Puck by default;
+// NARRATION=0 for music only).
 //   node scripts/demo-video.ts <out.webm>          (PLAN_ONLY=1 prints the planned run; FIX_ONLY=<old.webm> only repairs a file)
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { AI } from '../src/ai/ai.ts';
@@ -19,7 +21,7 @@ import { loadAllContent } from '../src/engine/content.ts';
 import { newRun, step } from '../src/engine/engine.ts';
 import { classifyByKeyword, interpretAction } from '../src/engine/interpret.ts';
 import { upgradeById, visibleActions } from '../src/engine/rules.ts';
-import { fmt } from '../src/engine/text.ts';
+import { fmt, withArticle } from '../src/engine/text.ts';
 import type { Action, EngineInput, ItemInfo, Outbound, RunState } from '../src/engine/types.ts';
 import { GameService } from '../src/game/service.ts';
 import { Hub } from '../src/server/hub.ts';
@@ -130,6 +132,75 @@ if (process.env.FIX_ONLY) {
   process.exit(0);
 }
 
+// ---------- Narration: one line per shot, spoken by Gemini TTS (cached, so re-shoots cost no quota) ----------
+const VOICE = process.env.VOICE ?? 'Puck';
+const NARRATE = !!process.env.GEMINI_API_KEY && process.env.NARRATION !== '0';
+const TTS_MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-flash-preview-tts'];
+const ITEM_NAME = ITEM.replace(/^my /, '');
+const LINES: Record<string, string> = {
+  title: 'Earth has hours left. You can bring one thing with you. What would it be?',
+  join: 'Join from any laptop. Just a nickname and your iPhone number. No app to install.',
+  pair: "Scan the code, tap send, and your laptop turns into your ship's bridge.",
+  item: `Text the ship a photo of anything near you, or just name it. Gemini rigs it into one of twelve fixed mods. ${ITEM_NAME.charAt(0).toUpperCase() + ITEM_NAME.slice(1)}? That's ${withArticle(hit.mod.name)}.`,
+  stage1: 'Every move costs fuel, oxygen or hull. Along the way, you choose upgrades.',
+  freetext: `From stage two, there are no menus. Just say what you'd do. The ${item.label} unlocks a move nobody else gets.`,
+  combo: "Upgrades stack into combos. And if you're lucky, you find legendary gear.",
+  dilemma: 'In lunar orbit, the ship breaks. Tear apart the thing you brought, or keep it and take the risk?',
+  landing: "Touchdown. The ending remembers what you brought, and Gemini writes a captain's log from what really happened.",
+  boarding: 'At events, everyone scans the big screen and launches together.',
+  flight: 'A live mission feed and leaderboard light up every combo, find and landing.',
+  podium: 'Every round ends on a podium, and the next launch opens on its own.',
+  tech: 'It all runs over iMessage with Photon Spectrum. Gemini only recognizes your item and understands your words. The rules decide every number, so every run is fair.',
+  end: 'Last Rocket to the Moon. What would you bring?',
+};
+const voiceDir = join(tmpdir(), 'demo-video-voice');
+const voiceFile = (text: string) => join(voiceDir, `${createHash('sha1').update(`${VOICE}|${text}`).digest('hex').slice(0, 16)}.wav`);
+/** Gemini TTS answers with a WAV, or raw 16-bit PCM ("audio/L16;rate=24000") that needs a header. */
+function asWav(data: Buffer, mime: string): Buffer {
+  if (data.toString('latin1', 0, 4) === 'RIFF') return data;
+  const rate = Number(/rate=(\d+)/.exec(mime)?.[1] ?? 24000);
+  const h = Buffer.alloc(44);
+  h.write('RIFF', 0); h.writeUInt32LE(36 + data.length, 4); h.write('WAVE', 8); h.write('fmt ', 12); h.writeUInt32LE(16, 16);
+  h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22); h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34);
+  h.write('data', 36); h.writeUInt32LE(data.length, 40);
+  return Buffer.concat([h, data]);
+}
+async function speak(text: string): Promise<Buffer> {
+  let last = '';
+  for (const model of TTS_MODELS) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY! },
+        body: JSON.stringify({ contents: [{ parts: [{ text }] }], generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } } }),
+      });
+      const j = (await r.json()) as { candidates?: { content?: { parts?: { inlineData?: { data: string; mimeType: string } }[] } }[] };
+      const audio = j.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData;
+      if (r.ok && audio) return asWav(Buffer.from(audio.data, 'base64'), audio.mimeType);
+      last = `${model}: HTTP ${r.status}`;
+      if (r.status !== 429) break;
+      await sleep(20_000); // per-minute limit: wait it out, then try again
+    }
+  }
+  throw new Error(`narration failed (${last})`);
+}
+if (NARRATE) {
+  mkdirSync(voiceDir, { recursive: true });
+  for (const [name, text] of Object.entries(LINES)) {
+    if (existsSync(voiceFile(text))) continue;
+    writeFileSync(voiceFile(text), await speak(text));
+    console.log(`voice: ${name}`);
+    await sleep(800);
+  }
+}
+if (process.env.VOICE_ONLY) {
+  for (const [name, text] of Object.entries(LINES)) {
+    const w = readFileSync(voiceFile(text));
+    const secs = w.readUInt32LE(40) / (w.readUInt32LE(24) * w.readUInt16LE(22) * (w.readUInt16LE(34) / 8));
+    console.log(`${name.padEnd(9)} ${secs.toFixed(1).padStart(5)} s  ${voiceFile(text)}`);
+  }
+  process.exit(0);
+}
+
 // ---------- 2. Servers ----------
 const stubUsers = { register: async () => ({ assignedNumber: '+15555550123' }), status: async () => ({ ok: true, users: 0, limit: 100 }) } as unknown as PhotonUsers;
 const soloHub = new Hub();
@@ -146,6 +217,11 @@ const front = createServer((req, res) => {
   if (url.pathname === '/director') {
     res.setHeader('content-type', 'text/html; charset=utf-8');
     return res.end(directorHtml);
+  }
+  const line = /^\/director\/voice\/(\w+)\.wav$/.exec(url.pathname);
+  if (line && LINES[line[1]]) {
+    res.setHeader('content-type', 'audio/wav');
+    return res.end(readFileSync(voiceFile(LINES[line[1]])));
   }
   if (url.pathname === '/director/chunk' && req.method === 'POST') {
     const b: Buffer[] = [];
@@ -274,7 +350,12 @@ async function waitRows(from: number, n: number): Promise<void> {
 }
 const cap = (k: string, t: string, s: string, mode = 'stage') => ev(`D.cap(${q(k)}, ${q(t)}, ${q(s)}, ${q(mode)})`);
 const resume = () => ev('D.rec.resume()');
-const pause = () => ev('D.rec.pause()');
+/** Start this shot's line (seconds from now, on the recording's clock). */
+const say = (name: string, inSec = 0) => (NARRATE ? ev(`M.say(${q(name)}, ${inSec})`) : Promise.resolve(0));
+const said = () => (NARRATE ? ev('M.said()') : Promise.resolve(true));
+/** Never cut in the middle of a sentence. */
+const pause = async () => { await said(); await sleep(250); await ev('D.rec.pause()'); };
+const pauseNow = () => ev('D.rec.pause()');
 const timeline: { shot: string; at: number }[] = [];
 const mark = async (shot: string) => timeline.push({ shot, at: await ev<number>('D.rec.elapsed()') });
 
@@ -414,16 +495,21 @@ try {
   await ev('D.speedPhone(0.55); D.clearStart(); true');
   await ev(`D.load('big', 'http://localhost:3401/screen')`);
   await ev(`D.card(''); D.show('card'); true`);
+  if (NARRATE) for (const name of Object.keys(LINES)) await ev(`M.loadLine(${q(name)}, '/director/voice/${name}.wav')`);
 
   console.log('capture:', await ev<string>('D.rec.start()', true));
   await ev('M.start()');
   await mark('title');
   await ev(`D.card(${q(TITLE)}); true`);
+  await say('title', 0.9);
   await sleep(5300);
+  await said();
+  await sleep(300);
 
   // Join from the laptop.
   await ev(`D.show('stage'); true`);
   await mark('join');
+  await say('join', 0.3);
   await cap('Join · about 20 seconds', 'Join from any laptop', 'A nickname and your iPhone number. No app to install.');
   await sleep(1000);
   await ev(`D.type(D.lap(), '#nick', 'Luna', 8)`);
@@ -439,6 +525,7 @@ try {
   const code = await ev<string>('D.joinCode()');
   await resume();
   await mark('pair');
+  await say('pair', 0.2);
   await cap('Scan · tap send', 'One text and you’re aboard', 'Messages opens with your join code already typed.');
   await sleep(700);
   await send(code, true, 11);
@@ -452,6 +539,7 @@ try {
   await resume();
   await ev('M.level(1)');
   await mark('item');
+  await say('item', 0.2);
   await cap('Bring one real thing', 'Snap it, or just name it…', '…and the AI rigs it into gear: one of 12 fixed mods.');
   await sleep(900);
   await send(ITEM, true, 16);
@@ -473,6 +561,7 @@ try {
   // Stage 1 and the first upgrade.
   await resume();
   await mark('stage1');
+  await say('stage1', 0.2);
   await cap(`Stage 1 of 5 · ${stageName(1)}`, 'Every move costs fuel, oxygen or hull', `Your ${item.label} unlocks its own moves. Then choose 1 of 3 upgrades.`);
   await sleep(1300);
   r0 = await rows();
@@ -491,6 +580,7 @@ try {
   await fastForwardTo(K.hidden);
   await resume();
   await mark('freetext');
+  await say('freetext', 0.2);
   await cap(`Stage 2 · ${stageName(2)}`, 'From here on, no menus', `Just say what you’d do. Your ${item.label} unlocks a move nobody else gets.`);
   await sleep(1400);
   r0 = await rows();
@@ -503,13 +593,14 @@ try {
   await fastForwardTo(K.combo);
   await resume();
   await mark('combo');
+  await say('combo', 0.2);
   await cap('Upgrades stack', 'Combos and legendary gear', comboLine(best.moves[K.combo].newCombos[0]));
   await sleep(1400);
   r0 = await rows();
   await play(K.combo, 5);
   await waitRows(r0, 3);
   await sleep(1700);
-  await pause();
+  await (K.legendary > K.combo && K.legendary < K.stage4 ? pauseNow() : pause());
   if (K.legendary > K.combo && K.legendary < K.stage4) {
     await fastForwardTo(K.legendary);
     await resume();
@@ -526,6 +617,7 @@ try {
   await fastForwardTo(K.stage4);
   await resume();
   await mark('dilemma');
+  await say('dilemma', 0.2);
   await cap(`Stage 4 · ${stageName(4)}`, 'Tear it apart to survive… or keep it?', 'Random crises and ±25% luck: no two flights are the same.');
   await sleep(2000);
   r0 = await rows();
@@ -538,6 +630,7 @@ try {
   await fastForwardTo(K.last);
   await resume();
   await mark('landing');
+  await say('landing', 0.2);
   await cap(`Stage 5 · ${stageName(5)}`, 'Touchdown', `The ending remembers what you brought: your ${item.label} made it to the Moon.`);
   await sleep(1300);
   await play(K.last, 17);
@@ -564,6 +657,7 @@ try {
   await until(() => { const r = round(); const left = r.boardingEndsAt - r.now; return r.phase === 'boarding' && left < 6000 && left > 4600 && fleet.screenState().counts.boarding >= 6; }, 300_000, 'a boarding call on the big screen');
   await resume();
   await mark('boarding');
+  await say('boarding', 0.3);
   await ev('M.level(2)');
   const toLift = (round().boardingEndsAt - round().now) / 1000;
   await ev(`M.riser(${Math.max(0, toLift - 3.2)}, 3.2); M.boom(${toLift}); true`);
@@ -573,12 +667,14 @@ try {
   await until(() => { const r = round(); return r.phase === 'flying' && r.now - (r.endsAt - r.flightMs) > 40_000; }, 60_000, 'mid-flight');
   await resume();
   await mark('flight');
+  await say('flight', 0.2);
   await cap('Live on the big screen', 'Mission feed and best landings', 'Combos, legendary finds and landings light up as they happen.', 'full');
   await sleep(5800);
   await pause();
   await until(() => { const r = round(); return r.phase === 'ceremony' && r.now - (r.ceremonyEndsAt - 25_000) > 1200; }, 120_000, 'the podium');
   await resume();
   await mark('podium');
+  await say('podium', 0.3);
   await ev('M.chime(0.2)');
   await cap('Every round', 'A podium, then the next launch', 'Rounds run on their own. The host just switches them on.', 'full');
   await sleep(5800);
@@ -591,12 +687,17 @@ try {
   await mark('tech');
   await sleep(300);
   await ev(`D.card(${q(TECH)}); true`);
+  await say('tech', 0.4);
   await sleep(7000);
+  await said();
+  await sleep(400);
   await ev(`D.show('none'); true`);
   await sleep(650);
   await mark('end');
   await ev(`D.card(${q(END)}); D.show('card'); M.level(0); true`);
+  await say('end', 0.5);
   await sleep(4400);
+  await said();
   await ev('M.fadeOut(2.4); true');
   await sleep(2600);
   const total = await ev<number>('D.rec.elapsed()');

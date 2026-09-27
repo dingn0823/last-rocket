@@ -124,14 +124,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const M = window.M = (() => {
   const ac = new AudioContext();
   const dest = ac.createMediaStreamDestination();
-  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -20; comp.ratio.value = 3;
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 4; comp.knee.value = 6; comp.attack.value = .004; comp.release.value = .25;
   const out = ac.createGain(); out.gain.value = 0.9;
   comp.connect(out).connect(dest);
-  const master = ac.createGain(); master.gain.value = 0.8; master.connect(comp);
+  const duck = ac.createGain(); duck.connect(comp);
+  const master = ac.createGain(); master.gain.value = 0.8; master.connect(duck);
+  const voice = ac.createGain(); voice.gain.value = 0.6; voice.connect(comp);
   const rev = ac.createConvolver();
   const len = ac.sampleRate * 3.2, ir = ac.createBuffer(2, len, ac.sampleRate);
   for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
-  rev.buffer = ir; const revGain = ac.createGain(); revGain.gain.value = 0.32; rev.connect(revGain).connect(comp);
+  rev.buffer = ir; const revGain = ac.createGain(); revGain.gain.value = 0.32; rev.connect(revGain).connect(duck);
   const delay = ac.createDelay(1); delay.delayTime.value = 0.357; const fb = ac.createGain(); fb.gain.value = 0.32; const wet = ac.createGain(); wet.gain.value = 0.22;
   delay.connect(fb).connect(delay); delay.connect(wet).connect(master);
   const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -197,6 +199,23 @@ const M = window.M = (() => {
       }
     },
     fadeOut(sec) { out.gain.setValueAtTime(out.gain.value, ac.currentTime); out.gain.linearRampToValueAtTime(0, ac.currentTime + sec); },
+    // ---------- narration (Gemini TTS lines, decoded up front) ----------
+    lines: {},
+    speaking: Promise.resolve(),
+    async loadLine(name, url) { this.lines[name] = await ac.decodeAudioData(await (await fetch(url)).arrayBuffer()); return this.lines[name].duration; },
+    /** Start a line now; the music ducks under it. Returns at once. */
+    say(name, inSec = 0) {
+      const buf = this.lines[name];
+      if (!buf) return 0;
+      const t = ac.currentTime + inSec, src = ac.createBufferSource();
+      src.buffer = buf; src.connect(voice); src.start(t);
+      duck.gain.cancelScheduledValues(t); duck.gain.setValueAtTime(duck.gain.value, t); duck.gain.linearRampToValueAtTime(.38, t + .25);
+      duck.gain.setValueAtTime(.38, t + buf.duration); duck.gain.linearRampToValueAtTime(1, t + buf.duration + .7);
+      this.speaking = new Promise((res) => (src.onended = res));
+      return buf.duration;
+    },
+    /** Resolves when the current line has finished (the recording keeps running meanwhile). */
+    said() { return this.speaking.then(() => true); },
   };
 })();
 
