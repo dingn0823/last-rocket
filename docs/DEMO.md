@@ -37,7 +37,7 @@
    - 他带的东西会解锁专属选项（比如软物品可以当缓冲垫，工具可以修东西）；
    - 隐藏选项：遇到漏气时说 "use my scarf to plug the leak"；
    - 组合技、传说装备、着陆时 iPhone 会有全屏特效，舰桥上也有动画。
-6. 结局会提到他带的东西是保住了还是牺牲了，然后发战绩卡。
+6. 结局会提到他带的东西是保住了还是牺牲了，然后发战绩卡。指着分数讲一句：*"Your score is 200 for landing, plus everything left in your tanks, 40 per combo, and 60 because your [item] made it. Speed doesn't count."*（着陆 200 + 剩余燃料/氧气/船体 + 每个组合技 40 + 物品保住 60；不比速度，只有成功着陆的局上排行榜。）
 
 **要讲的三句话**
 - 现实中的一样东西 → 变成这一局的装备 → 改变你能做的选择 → 出现在你的结局里。

@@ -52,6 +52,19 @@ npm run simulate   # balance table: landing rate per starting item and player st
 npm run typecheck
 ```
 
+## Scoring
+
+The score rewards playing well, not fast. Only landings make the big-screen leaderboard.
+
+| | Points |
+|---|---|
+| Ending | touchdown 200 · adrift 80 · lost 0 |
+| What's left | fuel + oxygen + hull, each 0–100 (not counted if the ship is lost) |
+| Combos | +40 each |
+| Your item | +60 if it made it (you didn't tear it apart in lunar orbit) |
+
+In the demo video: 200 + (20 + 92 + 89) + 40 + 60 = **501**. The weights live in `content/endings.json`.
+
 ## How it works
 
 ```

@@ -48,7 +48,7 @@ Our approach: **iMessage is the controller** (nothing to install, and everyone a
 3. **Fly 5 stages:** liftoff, the debris belt, deep space, lunar orbit and the landing. You manage fuel, oxygen and hull, pick 3 upgrades (12 upgrades, 4 combos, legendary drops) and face random events and interludes.
 4. **Just say what to do.** From stage 2 on there are no menus. Type *"strap my scarf to the nose as a bumper"* and the ship understands. Your item unlocks moves other players don't get, including hidden ones you only find by trying them.
 5. **A real choice.** In lunar orbit the ship breaks. Do you tear apart the thing you brought to survive, or keep it and take the riskier path?
-6. **An ending that remembers.** Touchdown, adrift or lost: the ending says whether your item made it, you get a score card, and Gemini writes a short captain's log of *your* run.
+6. **An ending that remembers.** Touchdown, adrift or lost: the ending says whether your item made it, you get a score card, and Gemini writes a short captain's log of *your* run. The score rewards playing well, not fast: 200 for a touchdown, plus whatever fuel, oxygen and hull you have left, +40 per combo and +60 if the thing you brought survived.
 
 The phone alone is enough to play the whole game. Everything below is optional:
 - **Personal bridge:** a live web page (behind a random, unguessable link) on your laptop with your rocket, gauges, gear slots and a holographic scan of your item.
