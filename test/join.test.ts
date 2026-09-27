@@ -101,7 +101,7 @@ describe('join & live updates', () => {
     assert.ok(texts.some((t) => t.startsWith('🖥') && t.includes('https://demo.trycloudflare.com/bridge/')), texts.join('\n'));
   });
 
-  it('a whole room behind one campus Wi-Fi address can join, a runaway script cannot', async () => {
+  it('the whole event can join through one campus Wi-Fi address, a runaway script cannot', async () => {
     const { hub, game } = make();
     const photonUsers = { register: async () => ({ assignedNumber: '+15555550123' }) } as unknown as PhotonUsers;
     const server = createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers });
@@ -114,7 +114,7 @@ describe('join & live updates', () => {
         body: JSON.stringify({ nickname: `Crew ${i}`, phone: '+15555550123', lang: 'en' }),
       }).then((r) => r.status);
     try {
-      assert.ok(JOINS_PER_IP >= 30, 'a room of 30 on one Wi-Fi fits');
+      assert.ok(JOINS_PER_IP >= 100, 'all 100 Photon seats can fill up through one Wi-Fi address');
       for (let i = 0; i < JOINS_PER_IP; i++) assert.equal(await joinFrom('203.0.113.7', i), 200, `join ${i + 1}`);
       assert.equal(await joinFrom('203.0.113.7', JOINS_PER_IP), 429, 'one more from the same address is refused');
       assert.equal(await joinFrom('198.51.100.9', 0), 200, 'other addresses are not affected');

@@ -60,9 +60,9 @@ function clientIp(req: IncomingMessage): string {
   return String(req.headers['cf-connecting-ip'] ?? req.socket.remoteAddress ?? '?');
 }
 
-/** Join-page registrations allowed from one address per 10 minutes. Generous on purpose: a whole room on
- *  campus Wi-Fi can reach us through one shared public address. The Photon seat cap still bounds abuse. */
-export const JOINS_PER_IP = 40;
+/** Join-page registrations allowed from one address per 10 minutes. As many as the Photon seats on purpose:
+ *  the whole event can reach us through one shared campus Wi-Fi address, and the seat cap bounds abuse. */
+export const JOINS_PER_IP = 100;
 
 const after = (url: URL) => Number(url.searchParams.get('after') ?? 0) || 0;
 
