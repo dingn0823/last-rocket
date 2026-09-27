@@ -1,5 +1,5 @@
 // Automatic rounds for events: nobody has to drive it.
-//   waiting ─(first player boards)→ boarding (30s) → flying (10 min) → ceremony (45s) → waiting …
+//   waiting ─(first player boards)→ boarding (30s) → flying (5 min) → ceremony (45s) → waiting …
 // Players who board during waiting/boarding/ceremony are held and all launch together;
 // players who arrive while a round is flying start straight away and still count.
 

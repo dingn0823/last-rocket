@@ -52,7 +52,7 @@ Our approach: **iMessage is the controller** (nothing to install, and everyone a
 
 The phone alone is enough to play the whole game. Everything below is optional:
 - **Personal bridge:** a live web page (behind a random, unguessable link) on your laptop with your rocket, gauges, gear slots and a holographic scan of your item.
-- **Big screen for events:** everyone who scans the QR code boards the same launch. There's a 30-second boarding countdown, a full-screen 3·2·1 LIFTOFF, then a 10-minute flight with a live mission feed and a best-landing leaderboard. A podium ceremony closes the round, and the next one starts on its own.
+- **Big screen for events:** everyone who scans the QR code boards the same launch. There's a 30-second boarding countdown, a full-screen 3·2·1 LIFTOFF, then a 5-minute flight with a live mission feed and a best-landing leaderboard. A podium ceremony closes the round, and the next one starts on its own.
 - **About 20 seconds to join:** open **dingn0823.github.io/moon**, type a nickname and your iPhone number, scan the QR code and hit send. The server registers you with Photon automatically, and the laptop page turns into your bridge as soon as your first text arrives.
 - **English and Chinese:** texting "join" or "加入" picks the language for the whole run.
 
@@ -144,7 +144,7 @@ https://github.com/dingn0823/last-rocket
 | 2-bring-one-thing.png | Text the ship, bring one real thing: the AI rigs it into gear, then you just say what to do. |
 | 3-bridge.png | Personal bridge: live rocket, gauges, a holographic scan of your cargo and your gear slots. |
 | 4-big-screen.png | Big screen: everyone launches together, with a live mission feed. |
-| 5-podium.png | A podium ceremony ends every 10-minute round; the next round starts on its own. |
+| 5-podium.png | A podium ceremony ends every 5-minute round; the next round starts on its own. |
 | 6-ending.png | An ending that remembers your item, plus a captain's log written for your run. |
 | 7-join.png | Joining takes about 20 seconds: nickname + iPhone number, scan, send. |
 

@@ -50,7 +50,7 @@ const game = new GameService({
   publicUrl,
   rounds: {
     boardingMs: Number(process.env.ROUND_BOARDING_SECONDS ?? 30) * 1000,
-    flightMs: Number(process.env.ROUND_MINUTES ?? 10) * 60_000,
+    flightMs: Number(process.env.ROUND_MINUTES ?? 5) * 60_000,
     ceremonyMs: Number(process.env.ROUND_CEREMONY_SECONDS ?? 45) * 1000,
   },
 });

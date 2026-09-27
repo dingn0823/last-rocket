@@ -15,7 +15,7 @@ Earth has hours left. You can bring **one thing** with you. Snap a photo of what
 3. **Fly 5 stages.** Stage 1 and the upgrade picks are numbered. From stage 2 on, just say what you'd do in your own words. Your item unlocks moves other players don't get, including hidden ones.
 4. **Land (or don't).** Touchdown, adrift or lost. The ending says whether your item made it, and a captain's log is written for your run.
 
-At events, the big screen puts everyone on the same launch: a boarding countdown, 3·2·1 liftoff, a 10-minute flight with a live mission feed, then a podium.
+At events, the big screen puts everyone on the same launch: a boarding countdown, 3·2·1 liftoff, a 5-minute flight with a live mission feed, then a podium.
 
 ![How you play](docs/img/how-you-play.jpg)
 

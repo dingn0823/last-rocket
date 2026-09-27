@@ -62,7 +62,7 @@ export class GameService {
     this.publicUrl = opts.publicUrl;
     for (const ch of opts.channels) this.channels.set(ch.name, ch);
     this.rounds = new RoundClock(
-      { boardingMs: 30_000, flightMs: 10 * 60_000, ceremonyMs: 45_000, ...opts.rounds },
+      { boardingMs: 30_000, flightMs: 5 * 60_000, ceremonyMs: 45_000, ...opts.rounds },
       {
         onLaunch: (no) => this.launchHeld(no),
         onFinish: (w) => this.podiumFor(w),

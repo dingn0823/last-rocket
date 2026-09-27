@@ -25,7 +25,7 @@
 - 启动：`bun start`。回声测试：用已登记的手机给分配的号码发消息，应收到 `echo:` 开头的回复。
 - 真机 iMessage：`.env` 里有 `PROJECT_ID`/`PROJECT_SECRET` 时 `npm start` 会自动连上 Photon（日志出现 `[photon] connected`）；设 `PHOTON=0` 可关闭。查某个玩家的专属号码：`npx @photon-ai/cli spectrum users list --json`（需先 `npx @photon-ai/cli login`，项目 id 用环境变量 `PHOTON_PROJECT_ID`）。`node scripts/photon-probe.ts` 给最近的 iMessage 玩家发两条测试消息，验证主动推送。
 - 大屏汇总页：http://localhost:3000/screen （决赛投屏用；控制页有按钮）。全场玩家在地月航线上的位置、英文实时战报、最佳着陆榜、加入二维码和短网址。不显示照片；网页模拟器的局默认不上大屏（加 ?sim=1 才显示）；控制页 🧹 Clear big screen 让排行榜和战报从零开始。彩排：`node scripts/screen-demo.ts`（:3100，机器人玩家，临时数据）。
-- 自动场次（决赛用，控制页 🔁 开关或 .env `ROUNDS=auto`）：第一个人加入 → 30 秒登船 → 所有人同时发射 → 10 分钟飞行（中途加入直接开玩）→ 45 秒颁奖（前三名，按本场最好的着陆分）→ 自动开下一场，大屏只显示当前场次。代码在 `src/game/round.ts`，候机时玩家的局停在 phase `new`、`RunRecord.heldRound` 记报名场次。手机不发名次。
+- 自动场次（决赛用，控制页 🔁 开关或 .env `ROUNDS=auto`）：第一个人加入 → 30 秒登船 → 所有人同时发射 → 5 分钟飞行（中途加入直接开玩；.env `ROUND_MINUTES` 可改）→ 45 秒颁奖（前三名，按本场最好的着陆分）→ 自动开下一场，大屏只显示当前场次。代码在 `src/game/round.ts`，候机时玩家的局停在 phase `new`、`RunRecord.heldRound` 记报名场次。手机不发名次。
 - 演示步骤、话术、兜底见 docs/DEMO.md。
 - Devpost：每一栏的英文文案在 docs/DEVPOST.md（含官方提交要求）。截图：先开彩排，再 `node scripts/devpost-shots.ts <输出文件夹>`（:3400 临时服务器，脚本像认真的玩家一样打字玩到着陆；加入页登记用虚构的 555 号码，不连 Photon；`ONLY=phone,join,screen` 只拍其中几部分）。演示视频：`PHOTO=<照片.jpg> node scripts/demo-video.ts <out.webm>`（有照片时拍 AI 扫描推近镜头；:3400 一名玩家的故事 + :3401 机器人大屏，scripts/demo-video.html 负责排版、字幕、WebAudio 原创配乐，用后台 Edge 录自己的标签页；约 9 分钟出 1080p WebM，会自动补上时长和拖动索引）。讲解是 Gemini TTS（gemini-3.8-flash-tts，免费额度可用，默认声音 Puck），讲解词在脚本的 `LINES`，镜头会等一句讲完才切。本机屏幕是 165Hz：录制时页面动画限到 30 帧、用 VP8 编码、重场景之间用黑场过渡，否则会卡帧。
 - 团队控制页：http://localhost:3000/host（只能在本机打开，经隧道访问返回 403）。显示公开网址、可全屏的加入二维码、Photon 登记名额、Gemini 状态、所有玩家和他们的舰桥。
