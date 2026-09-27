@@ -60,6 +60,10 @@ function clientIp(req: IncomingMessage): string {
   return String(req.headers['cf-connecting-ip'] ?? req.socket.remoteAddress ?? '?');
 }
 
+/** Join-page registrations allowed from one address per 10 minutes. Generous on purpose: a whole room on
+ *  campus Wi-Fi can reach us through one shared public address. The Photon seat cap still bounds abuse. */
+export const JOINS_PER_IP = 40;
+
 const after = (url: URL) => Number(url.searchParams.get('after') ?? 0) || 0;
 
 export interface HttpDeps {
@@ -122,7 +126,7 @@ export function createHttpServer({ game, hub, webDir, photonUsers, imessage }: H
         if (!photonUsers) return send(res, 503, { error: 'registration_unavailable' });
         const ip = clientIp(req);
         const recent = (joinsByIp.get(ip) ?? []).filter((t) => t > Date.now() - 10 * 60_000);
-        if (recent.length >= 6) return send(res, 429, { error: 'too_many' });
+        if (recent.length >= JOINS_PER_IP) return send(res, 429, { error: 'too_many' });
         joinsByIp.set(ip, [...recent, Date.now()]);
         try {
           const { assignedNumber } = await photonUsers.register(String(body.phone ?? ''), nickname);

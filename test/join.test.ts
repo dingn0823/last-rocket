@@ -1,18 +1,20 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import type { ServerResponse } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, describe, it } from 'node:test';
 import { AI } from '../src/ai/ai.ts';
 import { Gemini } from '../src/ai/gemini.ts';
-import { normalizePhone } from '../src/channel/photon-users.ts';
+import { normalizePhone, type PhotonUsers } from '../src/channel/photon-users.ts';
 import type { Channel } from '../src/channel/types.ts';
 import { loadAllContent } from '../src/engine/content.ts';
 import type { Outbound } from '../src/engine/types.ts';
 import { JoinRegistry, joinText } from '../src/game/join.ts';
 import { GameService } from '../src/game/service.ts';
 import { Hub } from '../src/server/hub.ts';
+import { createHttpServer, JOINS_PER_IP } from '../src/server/http.ts';
 import { Store } from '../src/store/store.ts';
 
 const root = join(import.meta.dirname, '..');
@@ -97,6 +99,29 @@ describe('join & live updates', () => {
     await game.handleInbound({ channel: 'imessage', address: 'solo', msgId: '1', text: 'join' });
     const texts = cap.sent.flat().map((m) => (m.t === 'text' ? m.text : ''));
     assert.ok(texts.some((t) => t.startsWith('🖥') && t.includes('https://demo.trycloudflare.com/bridge/')), texts.join('\n'));
+  });
+
+  it('a whole room behind one campus Wi-Fi address can join, a runaway script cannot', async () => {
+    const { hub, game } = make();
+    const photonUsers = { register: async () => ({ assignedNumber: '+15555550123' }) } as unknown as PhotonUsers;
+    const server = createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers });
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', () => r()));
+    const { port } = server.address() as AddressInfo;
+    const joinFrom = (ip: string, i: number) =>
+      fetch(`http://127.0.0.1:${port}/api/join`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
+        body: JSON.stringify({ nickname: `Crew ${i}`, phone: '+15555550123', lang: 'en' }),
+      }).then((r) => r.status);
+    try {
+      assert.ok(JOINS_PER_IP >= 30, 'a room of 30 on one Wi-Fi fits');
+      for (let i = 0; i < JOINS_PER_IP; i++) assert.equal(await joinFrom('203.0.113.7', i), 200, `join ${i + 1}`);
+      assert.equal(await joinFrom('203.0.113.7', JOINS_PER_IP), 429, 'one more from the same address is refused');
+      assert.equal(await joinFrom('198.51.100.9', 0), 200, 'other addresses are not affected');
+    } finally {
+      server.closeAllConnections();
+      server.close();
+    }
   });
 
   it('long poll: immediate when events are waiting, empty after timeout', async () => {

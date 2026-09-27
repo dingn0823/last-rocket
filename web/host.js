@@ -61,7 +61,7 @@ async function refresh() {
   set('sTunnel', s.publicUrl ? 'online' : 'local only (starting…)', s.publicUrl ? 'ok' : 'warn');
   set('sPhoton', s.photon.ok ? `ready · ${s.photon.users}/${s.photon.limit} seats` : `OFF · ${s.photon.error ?? ''}`, s.photon.ok ? (s.photon.users >= s.photon.limit ? 'bad' : 'ok') : 'bad');
   set('sAi', s.ai, s.ai === 'on' ? 'ok' : s.ai === 'rate-limited' ? 'warn' : 'bad');
-  set('sMode', s.eventMode ? 'EVENT (numbered options)' : 'single player (free text)', s.eventMode ? 'warn' : 'ok');
+  set('sMode', s.eventMode ? 'EVENT (numbered options)' : 'free text (any number of players)', s.eventMode ? 'warn' : 'ok');
   eventMode = s.eventMode;
   round = s.round;
   offset = s.round.now - Date.now();

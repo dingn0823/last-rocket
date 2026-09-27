@@ -29,7 +29,7 @@
 - 演示步骤、话术、兜底见 docs/DEMO.md。
 - Devpost：每一栏的英文文案在 docs/DEVPOST.md（含官方提交要求）。截图：先开彩排，再 `node scripts/devpost-shots.ts <输出文件夹>`（:3400 临时服务器，脚本像认真的玩家一样打字玩到着陆；加入页登记用虚构的 555 号码，不连 Photon；`ONLY=phone,join,screen` 只拍其中几部分）。演示视频：`PHOTO=<照片.jpg> node scripts/demo-video.ts <out.webm>`（有照片时拍 AI 扫描推近镜头；:3400 一名玩家的故事 + :3401 机器人大屏，scripts/demo-video.html 负责排版、字幕、WebAudio 原创配乐，用后台 Edge 录自己的标签页；约 9 分钟出 1080p WebM，会自动补上时长和拖动索引）。讲解是 Gemini TTS（gemini-3.8-flash-tts，免费额度可用，默认声音 Puck），讲解词在脚本的 `LINES`，镜头会等一句讲完才切。本机屏幕是 165Hz：录制时页面动画限到 30 帧、用 VP8 编码、重场景之间用黑场过渡，否则会卡帧。
 - 团队控制页：http://localhost:3000/host（只能在本机打开，经隧道访问返回 403）。显示公开网址、可全屏的加入二维码、Photon 登记名额、Gemini 状态、所有玩家和他们的舰桥。
-- 加入页：`<公开网址>/join`。玩家填昵称、手机号，选语言 → 服务器自动在 Photon 登记（用本机 CLI 登录的令牌，`~/.config/photon/credentials/production.json`，或环境变量 PHOTON_TOKEN）→ 显示二维码（SMSTO:专属号码:加入 1234）→ 手机发送后电脑页自动跳到他的舰桥。玩家发"再来一局"时舰桥自动跟到新一局。
+- 加入页：`<公开网址>/join`。玩家填昵称、手机号，选语言 → 服务器自动在 Photon 登记（用本机 CLI 登录的令牌，`~/.config/photon/credentials/production.json`，或环境变量 PHOTON_TOKEN）→ 显示二维码（SMSTO:专属号码:加入 1234）→ 手机发送后电脑页自动跳到他的舰桥。玩家发"再来一局"时舰桥自动跟到新一局。防刷：同一个网络地址 10 分钟内最多登记 40 次（`JOINS_PER_IP`，`src/server/http.ts`；原来是 6 次，全场连同一个校园 Wi-Fi 时会共用一个对外地址，所以调高）。
 - 公开网址：启动时自动运行 `tools/cloudflared.exe`（Cloudflare 免费临时隧道，不用账号，已 gitignore），每次重启网址都会变，以控制页显示的为准。设 PUBLIC_URL 可改用固定网址，TUNNEL=0 关闭。只用手机的玩家开局时会在 iMessage 里收到舰桥链接。
 - 固定短网址：https://dingn0823.github.io/moon （GitHub Pages，仓库 dingn0823/moon）。页面读 url.json 后跳到当前隧道的 /join（加 ?to=host 之类可改目标路径）。服务器每次拿到新隧道网址都会通过 GitHub API 自动改 url.json（.env 里 SHORTLINK_REPO / SHORTLINK_URL，令牌来自 `gh auth token`），实测重启后约 20 秒生效。海报、幻灯片、大屏上都写这个短网址。
 - 代码仓库：https://github.com/dingn0823/last-rocket （公开）。推送前已扫描全部历史，无密钥、无手机号。

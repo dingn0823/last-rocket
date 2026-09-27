@@ -21,7 +21,7 @@
   - Public URL：online
   - iMessage auto-registration：ready（显示 x/100 名额）。如果显示 OFF，在终端运行 `npx @photon-ai/cli login` 重新登录
   - Gemini：on
-  - Mode：评委桌前用 single player；决赛人多时点 **Switch to event mode**
+  - Mode：评委桌前用 free text（自由打字，人数不限）；决赛人多时点 **Switch to event mode**
 - [ ] 用团队的 iPhone 发一条"再来一局"或"again"，确认能收到回复（iMessage 链路正常）。
 - [ ] 手机浏览器打开短网址，确认能跳到加入页。
 
@@ -50,6 +50,7 @@
 | 评委没有 iPhone / 不想用自己的手机 | 递上团队已登记好的 iPhone |
 | 发了"加入 xxxx"收到 Photon 的英文拒收回复 | 多半是号码填错，或者 iMessage 用的是邮箱身份。按加入页黄色提示检查：设置 › App › 信息 › 发送与接收 › "开始新对话时使用"选手机号；删掉对话重发 |
 | 40 秒没反应 | 加入页会自动提示"改号码"；点它重新填 |
+| 加入页显示 "Too many tries" | 同一个网络地址 10 分钟内已经登记了 40 次（全场连同一个 Wi-Fi 时可能碰到）。让他关掉 Wi-Fi 用手机流量重新打开加入页，或者等几分钟 |
 | 照片识别失败 | 游戏会让他回复 1 重试，或者直接打字说物品名 |
 | 网络断了 | 切到手机热点；服务器不用重启 |
 | iMessage 整体不通 | 打开 http://localhost:3000/phone 用网页模拟器演示同一套游戏 |
