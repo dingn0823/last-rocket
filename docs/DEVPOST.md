@@ -4,7 +4,7 @@
 截止：**周日 9/27 12:00 PM（美中时间）**。截止前可以随时改；截止后通常不能再改，视频链接一定要在截止前填上。
 ⚠️ 提交页（最后一步）上主办方的 "Final reminder" 写的是 **10:00 AM** 前提交（里面的决赛时间也和主页不一样，像是旧文案）。Devpost 系统和官方规则都是 12:00 PM，但为了保险，按 10:00 AM 前提交（也是团队内部截止）。
 
-**状态（9/27 凌晨）：** 以下所有内容已填进 Devpost 并存为草稿（3/4 步完成）。只差最后一步：在 Submit 页勾选条款（"I, and all of my team members, have read and agree…"），再点 **Submit project**。提交后截止前仍可修改。
+**状态：** 9/27 凌晨 5 点左右已正式提交（Devpost 显示 "Project submitted!"）。截止（12:00 PM CDT）前还能继续修改。
 另外可选：每位队友登录后，在项目页右侧自己名字下的 "Describe your contribution" 写一句自己做了什么。
 
 官方要求（来自 https://hackwashu-fall-ai-2026.devpost.com/ ）：
