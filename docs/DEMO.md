@@ -58,9 +58,9 @@
 | 网络断了 | 切到手机热点；服务器不用重启 |
 | iMessage 整体不通 | 打开 http://localhost:3000/phone 用网页模拟器演示同一套游戏 |
 
-## 场合二：决赛上台（周日下午，Lopata 101）
+## 场合二：决赛上台（周日 4:30 PM 起，Lopata 101）
 
-三处官方时间不一致，按最早的准备：规则页写 3:30 公布决赛、4:30–5:00 决赛展示；主页日程写 5:00 展示；提交页提醒写 2:00 公布、4:00 开始展示。6:30 公布获奖。**4:00 前必须准备好。**
+**已入围决赛（10 强之一）。** 官方公告（9/27 下午）：决赛 4:30 PM 在 Lopata 101 开始，**每队 4 分钟演示 + 4 分钟问答**，决赛队伍提前到场准备。Photon 赛道奖单独评选。6:30 PM 公布获奖和闭幕。
 
 **接线**：笔记本接投影，Windows 设置 › 显示 › 选"**扩展**这些显示器"（不要选"复制"）。
 - 大屏：控制页点 **📺 Open big screen**，把新窗口拖到投影屏，按 F11 全屏。
@@ -80,7 +80,7 @@
 - 应急按钮：**🚀 Launch now**（人齐了不想等）、**🏁 End round now**（时间不够提前颁奖）。
 - 时长在 `.env` 改：`ROUND_BOARDING_SECONDS`、`ROUND_MINUTES`、`ROUND_CEREMONY_SECONDS`；`ROUNDS=auto` 让服务器一启动就进入自动场次。
 
-**流程（约 3–4 分钟的讲解）**
+**流程（4 分钟演示，之后 4 分钟问答）**
 1. 开场问全场：*"If Earth ended tomorrow and you could bring one thing, what would it be?"*
 2. 指向大屏："Scan the code with your iPhone camera, or go to **dingn0823.github.io/moon**. We launch together in 30 seconds."
 3. 观众在手机上填号码 → 点"打开信息"→ 发送 → 收到"你已进入发射名单"。
