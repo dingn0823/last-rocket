@@ -16,10 +16,13 @@ export function detectLang(text: string | undefined): Lang {
   return text && hasCJK(text) ? 'zh' : 'en';
 }
 
+/** Singular nouns that end in -s like a plural. */
+const SINGULAR_S = new Set(['thermos', 'lens', 'canvas', 'atlas', 'gas', 'chaos', 'cosmos', 'pancreas', 'rhinoceros']);
+
 /** English-only: plural-looking labels ("keys", "standard supplies"). */
 export function isPluralLabel(label: string): boolean {
   const last = label.trim().toLowerCase().split(/\s+/).pop() ?? '';
-  return /s$/.test(last) && !/(ss|us|is|ous)$/.test(last);
+  return /s$/.test(last) && !/(ss|us|is|ous)$/.test(last) && !SINGULAR_S.has(last);
 }
 
 export function withArticle(label: string, lang: Lang = 'en'): string {

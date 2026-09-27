@@ -383,7 +383,7 @@ export class GameService {
     const c = this.contentFor(rec.state);
     const version = rec.state.version;
     const callsBefore = this.ai.calls;
-    const text = await this.ai.narrateEnding(c, summarize(rec.state, c));
+    const text = await this.ai.narrateEnding(c, summarize(rec.state, c), rec.state.ending?.kind === 'success');
     rec.aiCalls = (rec.aiCalls ?? 0) + (this.ai.calls - callsBefore);
     if (!text || this.store.getRun(rec.state.runId)?.state.version !== version) {
       this.store.saveRun(rec);
@@ -399,5 +399,6 @@ export class GameService {
 function summarize(s: RunState, c: Content): string {
   const item = s.item ? `${s.item.label} (rigged as ${modById(c, s.item.modId).name}, ${s.item.status})` : 'nothing';
   const moves = s.history.map((h) => `stage ${h.stage} ${h.eventId}: ${h.actionId}${h.success === false ? ' (went badly)' : ''}`).join('; ');
-  return `Ending: ${s.ending?.kind}${s.ending?.cause ? ` (${s.ending.cause})` : ''}. Brought: ${item}. Upgrades: ${s.upgrades.join(', ') || 'none'}. Combos: ${s.combos.join(', ') || 'none'}. Moves: ${moves}.`;
+  const ending = { success: 'landed on the Moon', rescue: 'drifting short of the Moon, waiting for a rescue', failure: 'lost in space short of the Moon' }[s.ending?.kind ?? 'failure'];
+  return `Ending: ${ending}${s.ending?.cause ? ` (failed system: ${s.ending.cause})` : ''}. Brought: ${item}. Upgrades: ${s.upgrades.join(', ') || 'none'}. Combos: ${s.combos.join(', ') || 'none'}. Moves: ${moves}.`;
 }

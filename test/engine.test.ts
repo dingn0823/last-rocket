@@ -117,6 +117,8 @@ describe('languages', () => {
     let s = feed(newRun('t', 1, content, 0), { type: 'start' }).state;
     const guess = feed(s, { type: 'item_scanned', item: { modId: 'hatch_wrench', label: 'keys', blurb: 'your keys, ground down' } });
     assert.match((guess.out[0] as { text: string }).text, /^I think these are keys\. I can rig them into a Hatch Repair Wrench/);
+    const thermos = feed(s, { type: 'item_scanned', item: { modId: 'emergency_air_tank', label: 'thermos', blurb: 'your thermos, sealed' } });
+    assert.match((thermos.out[0] as { text: string }).text, /^I think this is a thermos\. I can rig it into/);
     s = feed(s, { type: 'scan_failed' }).state;
     s = feed(s, { type: 'scan_choice', retry: false }).state;
     assert.equal(s.item?.label, 'standard supplies');
@@ -295,6 +297,16 @@ describe('interpret', () => {
     assert.equal(wrong?.blurb, '你的办公椅，被缝成了缓冲护垫');
     const right = validateItem(content, { modId: 'impact_pad', label: 'office chair', blurb: 'your office chair, stripped into an impact pad' });
     assert.equal(right?.blurb, 'your office chair, stripped into an impact pad');
+  });
+
+  it("a captain's log never claims a landing the run didn't have", async () => {
+    const saying = (text: string) => new AI({ available: true, json: async () => ({ text }) } as unknown as Gemini);
+    const home = 'Pour yourself a drink from that thermos, Captain, because you finally made it home.';
+    assert.equal(await saying(home).narrateEnding(content, 'Ending: drifting', false), null);
+    assert.equal(await saying('你终于登上了月球。').narrateEnding(zh, 'Ending: drifting', false), null);
+    assert.equal(await saying(home).narrateEnding(content, 'Ending: landed on the Moon', true), home);
+    const adrift = 'You and your thermos, drifting under a thousand stars. Rescue is on its way.';
+    assert.equal(await saying(adrift).narrateEnding(content, 'Ending: drifting', false), adrift);
   });
 
   it('everyday objects in both languages', () => {
