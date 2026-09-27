@@ -58,7 +58,7 @@
   "fx_landing": "🌕 TOUCHDOWN",
   "fx_drift": "🛰️ ADRIFT",
   "fx_crash": "💥 LOST",
-  "lobbyWait": "🎫 You're on the launch list! Liftoff in about {seconds}s, all together. Look around: what will you bring?",
+  "lobbyWait": "🎫 You're on the launch list! Liftoff in about {seconds}s, all together. Pick one thing near you now: at liftoff, send me a photo of it.",
   "roundGo": "🚀 LAUNCH! You have {minutes} minutes to reach the Moon. Best landing wins.",
   "roundLate": "⏱️ A launch is already under way: {minutes} min left. Best landing wins!"
 }

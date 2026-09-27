@@ -43,12 +43,15 @@ describe('automatic rounds', () => {
       assert.equal(game.currentRun(a)!.state.phase, 'new', `${a} waits`);
       assert.ok(sent.get(a)![0].startsWith('🎫'), 'told they are on the list');
     }
+    assert.match(sent.get('+1001')![0], /photo/, 'told to have a photo ready for liftoff');
+    assert.match(sent.get('+1002')![0], /拍照/, 'told to have a photo ready for liftoff (Chinese)');
     assert.equal(game.screenState().counts.boarding, 2);
     await sleep(260);
     assert.equal(game.rounds.phase, 'flying');
     for (const a of ['+1001', '+1002']) {
       assert.equal(game.currentRun(a)!.state.phase, 'await_item', `${a} launched`);
       assert.ok(sent.get(a)!.some((t) => t.startsWith('🚀')), 'launch message');
+      assert.ok(!sent.get(a)!.some((t) => t.startsWith('⏱️')), 'players on the list are not told a launch is already under way');
     }
     assert.ok(sent.get('+1002')!.some((t) => t.includes('发射')), 'launch message in the player\'s language');
   });

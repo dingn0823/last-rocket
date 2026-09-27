@@ -194,7 +194,7 @@ export class GameService {
     result.state.processed = [...result.state.processed, msg.msgId].slice(-PROCESSED_CAP);
     rec.state = result.state;
     // Phone-only players get a link to watch their rocket (the join-page flow already has it open).
-    if (decision.input.type === 'start') this.addStartExtras(rec, result.out, c);
+    if (decision.input.type === 'start') this.addStartExtras(rec, result.out, c, this.rounds.phase === 'flying');
     for (const o of result.out) rec.transcript.push({ dir: 'out', at: Date.now(), msg: o });
 
     // Save first, then send. A failed send never re-runs the step.
@@ -283,9 +283,9 @@ export class GameService {
   }
 
   /** Phone-only players get their bridge link; late arrivals learn a round is already flying. */
-  private addStartExtras(rec: RunRecord, out: Outbound[], c: Content): void {
+  private addStartExtras(rec: RunRecord, out: Outbound[], c: Content, late: boolean): void {
     if (!rec.paired && this.publicUrl && rec.channel !== 'sim') out.push({ t: 'text', text: fmt(c.copy.bridgeLink, { url: this.bridgeUrl(rec.bridgeToken) }) });
-    if (this.rounds.phase === 'flying') {
+    if (late) {
       const minutes = Math.max(1, Math.ceil(this.rounds.flightLeftMs() / 60_000));
       out.unshift({ t: 'text', text: fmt(c.copy.roundLate, { minutes }) });
     }
@@ -321,7 +321,8 @@ export class GameService {
         const c = this.contentFor(latest.state);
         const result = step(latest.state, { type: 'start' }, c, { numbered: this.numberedMode, now: Date.now() });
         result.out.unshift({ t: 'text', text: fmt(c.copy.roundGo, { minutes }) });
-        this.addStartExtras(latest, result.out, c);
+        // They were on the launch list, so this is their liftoff, not a late start.
+        this.addStartExtras(latest, result.out, c, false);
         latest.state = result.state;
         for (const o of result.out) latest.transcript.push({ dir: 'out', at: Date.now(), msg: o });
         this.store.saveRun(latest);
