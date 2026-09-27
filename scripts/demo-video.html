@@ -58,6 +58,7 @@
 
   #dip { position: fixed; inset: 0; background: #02030a; opacity: 0; transition: opacity .35s ease; z-index: 20; pointer-events: none; }
   #dip.on { opacity: 1; }
+  #dip.slow { transition-duration: .9s; }
 
   /* ---------- cards ---------- */
   #card { display: flex; align-items: center; justify-content: center; text-align: center; }
@@ -257,7 +258,7 @@ const D = window.D = {
     c.classList.remove('out');
   },
   capOff() { $('cap').classList.add('out'); },
-  dip(on) { $('dip').classList.toggle('on', on); },
+  dip(on, slow = false) { $('dip').classList.toggle('slow', slow); $('dip').classList.toggle('on', on); },
   /** Push in on the bridge's cargo hologram (the AI scan), or pull back out. */
   zoom(on) {
     const lap = $('laptop');

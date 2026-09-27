@@ -172,6 +172,7 @@ const LINES: Record<string, string> = {
   landing: "Touchdown. The ending remembers what you brought, and Gemini writes a captain's log from what really happened.",
   boarding: 'At events, everyone scans the big screen and launches together.',
   flight: 'A live mission feed and leaderboard light up every combo, find and landing.',
+  board: 'The best landings climb the leaderboard in real time.',
   podium: 'Every round ends on a podium, and the next launch opens on its own.',
   tech: 'It all runs over iMessage with Photon Spectrum. Gemini only recognizes your item and understands your words. The rules decide every number, so every run is fair.',
   end: 'Last Rocket to the Moon. What would you bring?',
@@ -267,7 +268,8 @@ const botChannel: Channel = { name: 'bot', send: async () => {} };
 const fleet = new GameService({
   contents, store: new Store(mkdtempSync(join(tmpdir(), 'video-fleet-'))), hub: fleetHub, channels: [botChannel],
   ai: new AI(new Gemini('')), eventMode: true, publicUrl: '',
-  rounds: { boardingMs: 20_000, flightMs: 100_000, ceremonyMs: 25_000 },
+  // Shortened so a whole round fits in one take (a real round flies for 5 minutes).
+  rounds: { boardingMs: 20_000, flightMs: 35_000, ceremonyMs: 25_000 },
 });
 fleet.shortUrl = 'https://dingn0823.github.io/moon';
 fleet.rounds.setEnabled(true);
@@ -288,11 +290,11 @@ async function bot(i: number): Promise<void> {
     await say(first ? 'join' : 'again');
     first = false;
     while (phase() === 'new') await sleep(500);
-    await sleep(1500 + Math.random() * 3000);
+    await sleep(800 + Math.random() * 1500);
     await say(ITEMS[(i + n) % ITEMS.length]);
     await say('yes');
     while (phase() !== 'ended') {
-      await sleep(4000 + Math.random() * 5000);
+      await sleep(1600 + Math.random() * 1200);
       await say(String(1 + Math.floor(Math.random() * 3)));
     }
     while (fleet.rounds.phase === 'flying') await sleep(1000);
@@ -386,6 +388,8 @@ const pauseNow = () => ev('D.rec.pause()');
 /** Fade to black (after the line is said), then pause; the next shot starts black and fades in. */
 const toBlack = async () => { await said(); await ev('D.dip(true); true'); await sleep(420); await pauseNow(); };
 const fromBlack = async () => { await resume(); await sleep(250); await ev('D.dip(false); true'); };
+const toBlackSlow = async () => { await said(); await ev('D.dip(true, true); true'); await sleep(1000); await pauseNow(); };
+const fromBlackSlow = async () => { await resume(); await sleep(300); await ev('D.dip(false, true); true'); };
 const timeline: { shot: string; at: number }[] = [];
 const mark = async (shot: string) => timeline.push({ shot, at: await ev<number>('D.rec.elapsed()') });
 
@@ -726,37 +730,36 @@ try {
   await ev(`D.capOff(); D.unload('lap'); D.unload('ph'); D.bigOn(); D.show('full'); true`);
   await ev(`D.load('big', 'http://localhost:3401/screen')`);
   await sleep(8000); // let it settle before anything is recorded
+  // One continuous take, no cuts: boarding call → 3·2·1 → the whole (shortened) flight → podium.
   const round = () => fleet.rounds.snapshot();
-  await until(() => { const r = round(); const left = r.boardingEndsAt - r.now; return r.phase === 'boarding' && left < 6600 && left > 5200 && fleet.screenState().counts.boarding >= 6; }, 300_000, 'a boarding call on the big screen');
+  const flown = () => { const r = round(); return r.phase === 'flying' ? r.now - (r.endsAt - r.flightMs) : -1; };
+  await until(() => { const r = round(); const left = r.boardingEndsAt - r.now; return r.phase === 'boarding' && left < 9000 && left > 7600 && fleet.screenState().counts.boarding >= 6; }, 300_000, 'a boarding call on the big screen');
   await fromBlack();
   await mark('boarding');
-  await say('boarding', 0.3);
+  await say('boarding', 0.4);
   await ev('M.level(2)');
   const toLift = (round().boardingEndsAt - round().now) / 1000;
   await ev(`M.riser(${Math.max(0, toLift - 3.2)}, 3.2); M.boom(${toLift}); true`);
   await cap('At events', 'Everyone launches together', 'Scan the code on the big screen: a boarding call, then 3·2·1.', 'full');
-  await until(() => { const r = round(); return r.phase === 'flying' && r.now - (r.endsAt - r.flightMs) > 2600; }, 15_000, 'liftoff');
-  await toBlack();
-  await until(() => { const r = round(); return r.phase === 'flying' && r.now - (r.endsAt - r.flightMs) > 40_000; }, 60_000, 'mid-flight');
-  await fromBlack();
+  await until(() => flown() > 6000, 30_000, 'liftoff');
   await mark('flight');
-  await say('flight', 0.2);
+  await say('flight');
   await cap('Live on the big screen', 'Mission feed and best landings', 'Combos, legendary finds and landings light up as they happen.', 'full');
-  await sleep(5800);
-  await toBlack();
-  await until(() => { const r = round(); return r.phase === 'ceremony' && r.now - (r.ceremonyEndsAt - 25_000) > 900; }, 120_000, 'the podium');
-  await fromBlack();
+  await until(() => flown() > 21_000, 40_000, 'mid-flight');
+  await say('board');
+  await cap('Live on the big screen', 'The best landings climb the board', 'Scored on fuel, oxygen and hull left, combos, and whether your item made it.', 'full');
+  await until(() => round().phase === 'ceremony', 40_000, 'the podium');
   await mark('podium');
-  await say('podium', 0.3);
-  await ev('M.chime(0.2)');
+  await ev('M.chime(0.4)');
+  await say('podium', 0.8);
   await cap('Every round', 'A podium, then the next launch', 'Rounds run on their own. The host just switches them on.', 'full');
-  await sleep(5800);
-  await toBlack();
+  await sleep(9000);
+  await toBlackSlow();
 
   // How it works, and where to play.
   await ev(`D.capOff(); D.card(''); D.show('card'); D.unload('big'); true`);
   await sleep(800);
-  await fromBlack();
+  await fromBlackSlow();
   await ev('M.level(1)');
   await mark('tech');
   await sleep(300);
@@ -766,7 +769,7 @@ try {
   await said();
   await sleep(400);
   await ev(`D.show('none'); true`);
-  await sleep(650);
+  await sleep(1000);
   await mark('end');
   await ev(`D.card(${q(END)}); D.show('card'); M.level(0); true`);
   await say('end', 0.5);
