@@ -12,6 +12,8 @@ Needs Node ≥ 23.6 (runs `.ts` directly) or Bun. No runtime dependencies.
 npm start          # or: bun src/main.ts
 ```
 
+On Windows you can also double-click **Start game.cmd** (game server, opens the host console) or **Rehearse big screen.cmd** (big screen with bot players on :3100).
+
 - http://localhost:3000 is the landing page
 - http://localhost:3000/phone is the iMessage simulator (stand-in for the Photon channel)
 - **🖥 Bridge** in the simulator header opens the live bridge view for that run

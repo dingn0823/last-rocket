@@ -32,6 +32,7 @@
 - 公开网址：启动时自动运行 `tools/cloudflared.exe`（Cloudflare 免费临时隧道，不用账号，已 gitignore），每次重启网址都会变，以控制页显示的为准。设 PUBLIC_URL 可改用固定网址，TUNNEL=0 关闭。只用手机的玩家开局时会在 iMessage 里收到舰桥链接。
 - 固定短网址：https://dingn0823.github.io/moon （GitHub Pages，仓库 dingn0823/moon）。页面读 url.json 后跳到当前隧道的 /join（加 ?to=host 之类可改目标路径）。服务器每次拿到新隧道网址都会通过 GitHub API 自动改 url.json（.env 里 SHORTLINK_REPO / SHORTLINK_URL，令牌来自 `gh auth token`），实测重启后约 20 秒生效。海报、幻灯片、大屏上都写这个短网址。
 - 代码仓库：https://github.com/dingn0823/last-rocket （公开）。推送前已扫描全部历史，无密钥、无手机号。
+- 双击启动（给不用命令行的队友）：`Start game.cmd` 启动游戏服务器并打开控制页；`Rehearse big screen.cmd` 启动大屏彩排（:3100）。黑色窗口要一直开着。端口已被占用时会提示"已经在运行"并退出，不会出现两个副本同时回 iMessage。
 - 本地 demo（无需 Photon/Gemini）：`npm start`（Node ≥23.6 直接跑 .ts，或 `bun src/main.ts`），打开 http://localhost:3000/phone 用网页模拟 iMessage。
 - `npm test`：引擎、输入解析、去重、服务层测试。`npm run simulate`：各物品胜率平衡表（random 乱选 / smart 专挑物品选项 / thoughtful 看资源做决定的高手）。`node scripts/tune.ts`：扫描不同难度系数的通过率。
 - 调难度：只改 `content/stages.json` 里的 `costScale`（消耗倍率，现 1.8）、`lifeSupportPerStage`（每关氧气，现 10）、`variance`（浮动，现 0.25）、`interludeChance`（突发事件概率，现 0.55），改完跑 `node scripts/tune.ts` 看通过率。`npm run typecheck`：类型检查（需先 `npm install`）。

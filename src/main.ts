@@ -60,41 +60,58 @@ game.shortUrl = (process.env.SHORTLINK_URL ?? '').replace(/\/$/, '');
 // Join page registers players with Photon using this laptop's CLI login.
 const photonUsers = photon ? new PhotonUsers(process.env.PROJECT_ID!, Number(process.env.PHOTON_USER_LIMIT ?? 100)) : null;
 
-createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers }).listen(port, () => {
+const server = createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers });
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE') {
+    // Usually the game is already running in another window. Never start a second copy:
+    // two copies would both answer the same iMessages.
+    console.error(`\n  Port ${port} is already in use: the game is probably running in another window.`);
+    console.error('  Use that window, or close it and start again.\n');
+    process.exit(1);
+  }
+  throw err;
+});
+server.listen(port, () => {
   console.log(`🚀 Last Rocket to the Moon — http://localhost:${port}`);
   console.log(`   host console:    http://localhost:${port}/host`);
+  console.log(`   big screen:      http://localhost:${port}/screen`);
   console.log(`   phone simulator: http://localhost:${port}/phone`);
   console.log(`   AI: ${ai.gemini.enabled ? `Gemini (${ai.gemini.models.join(' → ')})` : 'off — keyword matching + numbered options'}`);
+  startServices();
 });
 
-deliver = (msg) => game.handleInbound(msg);
-if (photon) {
-  photon.start().catch((err) => console.error('[photon] could not connect; iMessage is off, the web simulator still works:', err?.message ?? err));
-} else {
-  console.log('   iMessage: off (no PROJECT_ID / PROJECT_SECRET in .env)');
-}
-
-// Public https URL: PUBLIC_URL if set, otherwise a Cloudflare quick tunnel (TUNNEL=0 to turn off).
 let tunnel: { stop(): void } | null = null;
-if (!publicUrl && process.env.TUNNEL !== '0') {
-  const bin = findCloudflared(root);
-  if (bin) {
-    tunnel = startTunnel(bin, port, (url) => {
-      game.publicUrl = url;
-      console.log(`🌍 public URL: ${url}   (join page: ${url}/join)`);
-      // Fixed short link (GitHub Pages) follows the tunnel, so posters and slides never go stale.
-      if (process.env.SHORTLINK_REPO) {
-        void updateShortlink(process.env.SHORTLINK_REPO, url).then((ok) => {
-          if (ok) console.log(`🔗 short link now points here: ${game.shortUrl || process.env.SHORTLINK_REPO} (live within ~1 min)`);
-        });
-      }
-    });
+
+/** iMessage, the public tunnel and the short link start only once the web server is up. */
+function startServices(): void {
+  deliver = (msg) => game.handleInbound(msg);
+  if (photon) {
+    photon.start().catch((err) => console.error('[photon] could not connect; iMessage is off, the web simulator still works:', err?.message ?? err));
   } else {
-    console.log('   public URL: off (put cloudflared.exe in tools/ or set PUBLIC_URL)');
+    console.log('   iMessage: off (no PROJECT_ID / PROJECT_SECRET in .env)');
   }
-}
-if (photonUsers) {
-  void photonUsers.status().then((s) => console.log(s.ok ? `   Photon users: ${s.users}/${s.limit} registered` : `   Photon auto-registration unavailable: ${s.error} (run: npx @photon-ai/cli login)`));
+
+  // Public https URL: PUBLIC_URL if set, otherwise a Cloudflare quick tunnel (TUNNEL=0 to turn off).
+  if (!publicUrl && process.env.TUNNEL !== '0') {
+    const bin = findCloudflared(root);
+    if (bin) {
+      tunnel = startTunnel(bin, port, (url) => {
+        game.publicUrl = url;
+        console.log(`🌍 public URL: ${url}   (join page: ${url}/join)`);
+        // Fixed short link (GitHub Pages) follows the tunnel, so posters and slides never go stale.
+        if (process.env.SHORTLINK_REPO) {
+          void updateShortlink(process.env.SHORTLINK_REPO, url).then((ok) => {
+            if (ok) console.log(`🔗 short link now points here: ${game.shortUrl || process.env.SHORTLINK_REPO} (live within ~1 min)`);
+          });
+        }
+      });
+    } else {
+      console.log('   public URL: off (put cloudflared.exe in tools/ or set PUBLIC_URL)');
+    }
+  }
+  if (photonUsers) {
+    void photonUsers.status().then((st) => console.log(st.ok ? `   Photon users: ${st.users}/${st.limit} registered` : `   Photon auto-registration unavailable: ${st.error} (run: npx @photon-ai/cli login)`));
+  }
 }
 
 async function shutdown() {
@@ -104,3 +121,5 @@ async function shutdown() {
 }
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
+// Windows: closing the console window.
+process.on('SIGHUP', shutdown);

@@ -7,7 +7,7 @@
 
 - [ ] 笔记本插电；Windows 设置里关掉睡眠、屏保、自动锁屏；关掉系统更新提醒。
 - [ ] 连好 Wi-Fi；准备一部手机开热点作为备用网络。
-- [ ] 启动服务器：在 `last-rocket` 文件夹运行 `npm start`。启动后**不要再重启**（重启没问题，只是公开网址会变，短网址 20 秒后跟上）。
+- [ ] 启动服务器：打开 `last-rocket` 文件夹，**双击 `Start game.cmd`**。会出现一个黑色窗口，几秒后浏览器自动打开控制页。**这个黑色窗口要一直开着**，关掉它游戏就停了。（重启没问题，只是公开网址会变，短网址 20 秒后自动跟上。）如果窗口里提示 "Port 3000 is already in use"，说明游戏已经在运行，直接用现有的就行。
 - [ ] 控制页检查四个状态：
   - Public URL：online
   - iMessage auto-registration：ready（显示 x/100 名额）。如果显示 OFF，在终端运行 `npx @photon-ai/cli login` 重新登录
@@ -76,4 +76,4 @@
 
 ## 彩排大屏
 
-`node scripts/screen-demo.ts 14 3` 会在 http://localhost:3100/screen 启动一个独立的彩排服务器（14 个机器人，每场飞行 3 分钟，自动场次），可以完整看到候机 → 倒数发射 → 飞行 → 颁奖 → 下一场。控制页是 http://localhost:3100/host。不连 Photon、不用隧道，也不碰真实存档，可以用来练习投屏和讲解。
+双击 `last-rocket` 文件夹里的 **`Rehearse big screen.cmd`**（或运行 `node scripts/screen-demo.ts 14 3`），会在 http://localhost:3100/screen 启动一个独立的彩排服务器，浏览器自动打开大屏；关掉黑色窗口即停止。它（14 个机器人，每场飞行 3 分钟，自动场次），可以完整看到候机 → 倒数发射 → 飞行 → 颁奖 → 下一场。控制页是 http://localhost:3100/host。不连 Photon、不用隧道，也不碰真实存档，可以用来练习投屏和讲解。

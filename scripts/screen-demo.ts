@@ -26,7 +26,13 @@ const game = new GameService({
 });
 game.shortUrl = 'https://dingn0823.github.io/moon';
 game.rounds.setEnabled(true);
-createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers: null }).listen(3100, () => {
+const server = createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers: null });
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code !== 'EADDRINUSE') throw err;
+  console.error('\n  The rehearsal is already running in another window: open http://localhost:3100/screen\n');
+  process.exit(1);
+});
+server.listen(3100, () => {
   console.log(`big-screen rehearsal: http://localhost:3100/screen  (${count} bots, ${flightMin}-minute rounds)`);
 });
 
