@@ -67,9 +67,12 @@ export interface HttpDeps {
   hub: Hub;
   webDir: string;
   photonUsers: PhotonUsers | null;
+  /** iMessage connection, if configured. */
+  imessage?: { status: string; lastError: string } | null;
 }
 
-export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): Server {
+export function createHttpServer({ game, hub, webDir, photonUsers, imessage }: HttpDeps): Server {
+  const imessageStatus = () => (imessage ? { status: imessage.status, error: imessage.lastError || null } : { status: 'off', error: null });
   const mediaDir = game.store.mediaDir;
   const joinsByIp = new Map<string, number[]>();
 
@@ -264,6 +267,7 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
           ai: game.ai.gemini.enabled ? (game.ai.rateLimited ? 'rate-limited' : 'on') : 'off',
           eventMode: game.eventMode,
           round: game.rounds.snapshot(),
+          imessage: imessageStatus(),
           photon: photonUsers ? await photonUsers.status() : { ok: false, users: 0, limit: 0, error: 'iMessage is off' },
           runs,
         });
@@ -274,6 +278,7 @@ export function createHttpServer({ game, hub, webDir, photonUsers }: HttpDeps): 
           ok: true,
           ai: game.ai.gemini.enabled ? (game.ai.rateLimited ? 'rate-limited' : 'on') : 'off (keyword mode)',
           eventMode: game.eventMode,
+          imessage: imessageStatus().status,
           waiting: hub.count(),
         });
       }

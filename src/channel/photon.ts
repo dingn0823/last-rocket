@@ -30,6 +30,9 @@ export class PhotonChannel implements Channel {
   readonly name = 'imessage';
   readonly opts: PhotonOptions;
   private app: any = null;
+  /** For the host console: is iMessage actually connected? */
+  status: 'connecting' | 'connected' | 'error' = 'connecting';
+  lastError = '';
   private spaces = new Map<string, any>();
   /** What we've seen so far; logged so we can verify photo formats and multi-send on real devices. */
   stats = { inbound: 0, sent: 0, sendErrors: 0, photos: {} as Record<string, number> };
@@ -39,6 +42,18 @@ export class PhotonChannel implements Channel {
   }
 
   async start(): Promise<void> {
+    this.status = 'connecting';
+    try {
+      await this.connect();
+      this.status = 'connected';
+    } catch (err) {
+      this.status = 'error';
+      this.lastError = (err as Error)?.message ?? String(err);
+      throw err;
+    }
+  }
+
+  private async connect(): Promise<void> {
     this.app = await Spectrum({
       projectId: this.opts.projectId,
       projectSecret: this.opts.projectSecret,

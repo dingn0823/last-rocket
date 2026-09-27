@@ -60,7 +60,7 @@ game.shortUrl = (process.env.SHORTLINK_URL ?? '').replace(/\/$/, '');
 // Join page registers players with Photon using this laptop's CLI login.
 const photonUsers = photon ? new PhotonUsers(process.env.PROJECT_ID!, Number(process.env.PHOTON_USER_LIMIT ?? 100)) : null;
 
-const server = createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers });
+const server = createHttpServer({ game, hub, webDir: join(root, 'web'), photonUsers, imessage: photon });
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') {
     // Usually the game is already running in another window. Never start a second copy:
