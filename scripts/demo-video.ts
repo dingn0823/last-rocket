@@ -5,7 +5,9 @@
 // Temp saves only. Registration is a stub with a fictional 555 number, so nothing reaches Photon.
 // Gemini (if .env has a key) writes the captain's log and speaks the narration (Gemini TTS, VOICE=Puck by default;
 // NARRATION=0 for music only).
-//   node scripts/demo-video.ts <out.webm>          (PLAN_ONLY=1 prints the planned run; FIX_ONLY=<old.webm> only repairs a file)
+// PHOTO=<photo.jpg> sends a real photo: the bridge's hologram scans it while Gemini recognizes it (the shot the video is built
+// around); without it the item is typed.
+//   PHOTO=<photo.jpg> node scripts/demo-video.ts <out.webm>   (PLAN_ONLY=1 prints the planned run; FIX_ONLY=<old.webm> only repairs a file)
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
@@ -20,7 +22,7 @@ import type { Channel } from '../src/channel/types.ts';
 import { loadAllContent } from '../src/engine/content.ts';
 import { newRun, step } from '../src/engine/engine.ts';
 import { classifyByKeyword, interpretAction } from '../src/engine/interpret.ts';
-import { upgradeById, visibleActions } from '../src/engine/rules.ts';
+import { modById, upgradeById, visibleActions } from '../src/engine/rules.ts';
 import { fmt, withArticle } from '../src/engine/text.ts';
 import type { Action, EngineInput, ItemInfo, Outbound, RunState } from '../src/engine/types.ts';
 import { GameService } from '../src/game/service.ts';
@@ -39,10 +41,20 @@ const en = contents.en;
 
 // ---------- 1. Pick dice (a seed) under which a careful run shows everything ----------
 // The seed only decides events and luck; every move is the careful player's own choice.
+const PHOTO = process.env.PHOTO;
 const ITEM = "my grandma's knitted scarf";
-const hit = classifyByKeyword(en, ITEM);
-if (!hit) throw new Error('item not recognized by keywords');
-const item: ItemInfo = { modId: hit.mod.id, label: hit.keyword, blurb: fmt(hit.mod.blurb, { label: hit.keyword }) };
+let item: ItemInfo;
+if (PHOTO) {
+  // What Gemini will most likely say during the shoot (the narration is written from it; the run is re-planned if it differs).
+  const probe = await new AI(new Gemini(process.env.GEMINI_API_KEY ?? '', process.env.GEMINI_MODEL)).classifyPhoto(en, { base64: readFileSync(PHOTO).toString('base64'), mime: 'image/jpeg' });
+  if (!probe.ok) throw new Error(`Gemini could not read ${PHOTO}`);
+  item = probe.item;
+  console.log(`photo: Gemini sees "${item.label}" → ${modById(en, item.modId).name}`);
+} else {
+  const hit = classifyByKeyword(en, ITEM);
+  if (!hit) throw new Error('item not recognized by keywords');
+  item = { modId: hit.mod.id, label: hit.keyword, blurb: fmt(hit.mod.blurb, { label: hit.keyword }) };
+}
 
 interface Move { text: string; phase: 'action' | 'pick'; stage: number; eventId: string | null; hidden: boolean; fx: string[]; newCombos: string[] }
 interface Plan { seed: number; rng: number; moves: Move[]; end: RunState }
@@ -55,7 +67,7 @@ function sayIt(a: Action, label: string): string {
 }
 const fxOf = (out: Outbound[]) => out.flatMap((o) => (o.t === 'fx' ? [o.fx] : []));
 
-function plan(seed: number): Plan | null {
+function plan(seed: number, it: ItemInfo): Plan | null {
   const env = { numbered: false, now: 0 };
   let s = newRun('plan', seed, en, 0);
   const feed = (input: EngineInput) => {
@@ -66,7 +78,7 @@ function plan(seed: number): Plan | null {
   // feed() reassigns s, which TypeScript can't see through the closure: read the phase fresh.
   const phase = (): string => s.phase;
   feed({ type: 'start' });
-  feed({ type: 'item_scanned', item });
+  feed({ type: 'item_scanned', item: it });
   feed({ type: 'confirm', yes: true });
   if (phase() !== 'action') return null;
   const rng = s.rng;
@@ -83,7 +95,7 @@ function plan(seed: number): Plan | null {
     const a = bestAction(s, en);
     const idx = visibleActions(s, en).findIndex((v) => v.id === a.id);
     // Stage 1 is numbered; after that the player types. The words must reach the move by keywords alone.
-    const candidates = s.stage === 1 && idx >= 0 ? [String(idx + 1)] : [sayIt(a, item.label), ...a.keywords.slice(0, 2)];
+    const candidates = s.stage === 1 && idx >= 0 ? [String(idx + 1)] : [sayIt(a, it.label), ...a.keywords.slice(0, 2)];
     const text = candidates.find((t) => {
       const r = interpretAction(s, en, t);
       return r.kind === 'action' && r.id === a.id;
@@ -112,17 +124,21 @@ function score(p: Plan | null): number {
   if (/^\d$/.test(p.moves[k.stage4].text)) sc -= 20;
   return sc;
 }
-let best: Plan | null = null;
-let bestScore = -1;
-for (let seed = 1; seed <= 40_000 && bestScore < 80; seed++) {
-  const p = plan(seed);
-  const sc = score(p);
-  if (sc > bestScore) { best = p; bestScore = sc; }
+function findPlan(it: ItemInfo): Plan {
+  let found: Plan | null = null;
+  let bestScore = -1;
+  for (let seed = 1; seed <= 40_000 && bestScore < 80; seed++) {
+    const p = plan(seed, it);
+    const sc = score(p);
+    if (sc > bestScore) { found = p; bestScore = sc; }
+  }
+  if (!found) throw new Error(`no seed shows the whole story for ${it.label}`);
+  console.log(`dice: seed ${found.seed} (score ${bestScore}), ${found.moves.length} moves:`);
+  found.moves.forEach((m, i) => console.log(`  ${i}. [${m.phase} s${m.stage} ${m.eventId ?? ''}] "${m.text}"${m.hidden ? ' HIDDEN' : ''}${m.fx.length ? ` fx=${m.fx}` : ''}${m.newCombos.length ? ` combo=${m.newCombos}` : ''}`));
+  return found;
 }
-if (!best) throw new Error('no seed shows the whole story');
-const K = keyMoves(best);
-console.log(`dice: seed ${best.seed} (score ${bestScore}), ${best.moves.length} moves:`);
-best.moves.forEach((m, i) => console.log(`  ${i}. [${m.phase} s${m.stage} ${m.eventId ?? ''}] "${m.text}"${m.hidden ? ' HIDDEN' : ''}${m.fx.length ? ` fx=${m.fx}` : ''}${m.newCombos.length ? ` combo=${m.newCombos}` : ''}`));
+let best = findPlan(item);
+let K = keyMoves(best);
 
 if (process.env.PLAN_ONLY) process.exit(0);
 // FIX_ONLY=<recording.webm>: just make an earlier recording seekable (writes <out.webm>).
@@ -137,13 +153,20 @@ const VOICE = process.env.VOICE ?? 'Puck';
 const NARRATE = !!process.env.GEMINI_API_KEY && process.env.NARRATION !== '0';
 const TTS_MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts', 'gemini-3.1-flash-tts-preview', 'gemini-2.5-flash-preview-tts'];
 const ITEM_NAME = ITEM.replace(/^my /, '');
+const MOD_NAME = modById(en, item.modId).name;
 const LINES: Record<string, string> = {
   title: 'Earth has hours left. You can bring one thing with you. What would it be?',
   join: 'Join from any laptop. Just a nickname and your iPhone number. No app to install.',
   pair: "Scan the code, tap send, and your laptop turns into your ship's bridge.",
-  item: `Text the ship a photo of anything near you, or just name it. Gemini rigs it into one of twelve fixed mods. ${ITEM_NAME.charAt(0).toUpperCase() + ITEM_NAME.slice(1)}? That's ${withArticle(hit.mod.name)}.`,
+  ...(PHOTO
+    ? {
+        scan: 'Snap a photo of anything near you. Gemini scans it and picks one of twelve fixed mods.',
+        rigged: `A ${item.label.split(' ').pop()}? Now it's ${withArticle(MOD_NAME)}.`,
+        rigged_any: "Now it's gear for the trip.",
+      }
+    : { item: `Text the ship a photo of anything near you, or just name it. Gemini rigs it into one of twelve fixed mods. ${ITEM_NAME.charAt(0).toUpperCase() + ITEM_NAME.slice(1)}? That's ${withArticle(MOD_NAME)}.` }),
   stage1: 'Every move costs fuel, oxygen or hull. Along the way, you choose upgrades.',
-  freetext: `From stage two, there are no menus. Just say what you'd do. The ${item.label} unlocks a move nobody else gets.`,
+  freetext: "From stage two, there are no menus. Just say what you'd do. What you brought unlocks moves nobody else gets.",
   combo: "Upgrades stack into combos. And if you're lucky, you find legendary gear.",
   dilemma: 'In lunar orbit, the ship breaks. Tear apart the thing you brought, or keep it and take the risk?',
   landing: "Touchdown. The ending remembers what you brought, and Gemini writes a captain's log from what really happened.",
@@ -217,6 +240,10 @@ const front = createServer((req, res) => {
   if (url.pathname === '/director') {
     res.setHeader('content-type', 'text/html; charset=utf-8');
     return res.end(directorHtml);
+  }
+  if (url.pathname === '/director/photo.jpg' && PHOTO) {
+    res.setHeader('content-type', 'image/jpeg');
+    return res.end(readFileSync(PHOTO));
   }
   const line = /^\/director\/voice\/(\w+)\.wav$/.exec(url.pathname);
   if (line && LINES[line[1]]) {
@@ -356,6 +383,9 @@ const said = () => (NARRATE ? ev('M.said()') : Promise.resolve(true));
 /** Never cut in the middle of a sentence. */
 const pause = async () => { await said(); await sleep(250); await ev('D.rec.pause()'); };
 const pauseNow = () => ev('D.rec.pause()');
+/** Fade to black (after the line is said), then pause; the next shot starts black and fades in. */
+const toBlack = async () => { await said(); await ev('D.dip(true); true'); await sleep(420); await pauseNow(); };
+const fromBlack = async () => { await resume(); await sleep(250); await ev('D.dip(false); true'); };
 const timeline: { shot: string; at: number }[] = [];
 const mark = async (shot: string) => timeline.push({ shot, at: await ev<number>('D.rec.elapsed()') });
 
@@ -493,8 +523,8 @@ try {
   await ev(`D.load('ph', '/phone')`);
   await sleep(1800);
   await ev('D.speedPhone(0.55); D.clearStart(); true');
-  await ev(`D.load('big', 'http://localhost:3401/screen')`);
   await ev(`D.card(''); D.show('card'); true`);
+  if (PHOTO) console.log('photo for the phone:', await ev<string>(`D.shrinkPhoto('/director/photo.jpg')`));
   if (NARRATE) for (const name of Object.keys(LINES)) await ev(`M.loadLine(${q(name)}, '/director/voice/${name}.wav')`);
 
   console.log('capture:', await ev<string>('D.rec.start()', true));
@@ -504,10 +534,13 @@ try {
   await say('title', 0.9);
   await sleep(5300);
   await said();
-  await sleep(300);
+  await sleep(200);
+  await toBlack();
+  await ev(`D.show('stage'); true`);
+  await sleep(1500); // drawn while paused, under the black
+  await fromBlack();
 
   // Join from the laptop.
-  await ev(`D.show('stage'); true`);
   await mark('join');
   await say('join', 0.3);
   await cap('Join · about 20 seconds', 'Join from any laptop', 'A nickname and your iPhone number. No app to install.');
@@ -535,20 +568,57 @@ try {
   await sleep(1000);
   await pause();
 
-  // Bring one thing.
+  // Bring one thing. (The photo is attached while paused: decoding it on camera stalls a frame.)
+  if (PHOTO) {
+    await ev('D.attachPhoto(D.photoUrl)');
+    await ev('D.zoomNow()');
+    await sleep(1400); // the close-up is drawn before it's seen
+  }
   await resume();
   await ev('M.level(1)');
-  await mark('item');
-  await say('item', 0.2);
-  await cap('Bring one real thing', 'Snap it, or just name it…', '…and the AI rigs it into gear: one of 12 fixed mods.');
-  await sleep(900);
-  await send(ITEM, true, 16);
-  await until(() => st()?.phase === 'confirm_item', 8000, 'the item guess');
+  if (PHOTO) {
+    // The AI scan: the photo goes out, the bridge's hologram scans it, Gemini names it.
+    await mark('scan');
+    await say('scan', 0.2);
+    await cap('AI scan · Gemini', 'Snap one real thing', 'Gemini looks at the photo and picks one of 12 fixed mods.');
+    // Open on the empty scanner, so the whole scan is seen: photo in, scan lines, Gemini's answer.
+    await sleep(1800);
+    await ev('D.sendAttached()');
+    await until(async () => !!(await ev('D.holoScanning()')), 10_000, 'the hologram scan');
+    await until(() => st()?.phase === 'confirm_item', 20_000, "Gemini's answer");
+    const seen = st()!.pendingItem!;
+    console.log(`live scan: Gemini sees "${seen.label}" → ${modById(en, seen.modId).name}`);
+    await sleep(700);
+    await cap('AI scan · Gemini', `${seen.label.charAt(0).toUpperCase() + seen.label.slice(1)} → ${modById(en, seen.modId).name}`, 'Recognized from the photo, then rigged into gear by the rules.');
+    await said();
+    await say(seen.modId === item.modId ? 'rigged' : 'rigged_any', 0.1);
+    await sleep(1400);
+    await said();
+    await sleep(300);
+    await pauseNow();
+    await ev('D.zoomReset()');
+    await sleep(1200);
+    await resume();
+    await sleep(300);
+  } else {
+    await mark('item');
+    await say('item', 0.2);
+    await cap('Bring one real thing', 'Snap it, or just name it…', '…and the AI rigs it into gear: one of 12 fixed mods.');
+    await sleep(900);
+    await send(ITEM, true, 16);
+    await until(() => st()?.phase === 'confirm_item', 8000, 'the item guess');
+  }
   await phoneIdle(500);
-  await sleep(1000);
+  await sleep(900);
   let r0 = await rows();
   await send('1', true, 5);
   await until(() => st()?.phase === 'action' && st()?.stage === 1, 8000, 'stage 1');
+  const locked = st()!.item!;
+  if (locked.modId !== item.modId || locked.label !== item.label) {
+    item = { modId: locked.modId, label: locked.label, blurb: locked.blurb, plural: locked.plural };
+    best = findPlan(item);
+    K = keyMoves(best);
+  }
   // Load the chosen dice: from here on, events and luck follow the plan.
   const rec = run()!;
   rec.state.rng = best.rng;
@@ -651,11 +721,14 @@ try {
   }
   console.log(`solo run: ${st()?.ending?.kind}, score ${st()?.ending?.score}`);
 
-  // The big screen: everyone launches together.
-  await ev(`D.capOff(); D.show('full'); true`);
+  // The big screen: everyone launches together. (The phone and laptop are done: unload them, less to draw.)
+  await toBlack();
+  await ev(`D.capOff(); D.unload('lap'); D.unload('ph'); D.bigOn(); D.show('full'); true`);
+  await ev(`D.load('big', 'http://localhost:3401/screen')`);
+  await sleep(8000); // let it settle before anything is recorded
   const round = () => fleet.rounds.snapshot();
-  await until(() => { const r = round(); const left = r.boardingEndsAt - r.now; return r.phase === 'boarding' && left < 6000 && left > 4600 && fleet.screenState().counts.boarding >= 6; }, 300_000, 'a boarding call on the big screen');
-  await resume();
+  await until(() => { const r = round(); const left = r.boardingEndsAt - r.now; return r.phase === 'boarding' && left < 6600 && left > 5200 && fleet.screenState().counts.boarding >= 6; }, 300_000, 'a boarding call on the big screen');
+  await fromBlack();
   await mark('boarding');
   await say('boarding', 0.3);
   await ev('M.level(2)');
@@ -663,26 +736,27 @@ try {
   await ev(`M.riser(${Math.max(0, toLift - 3.2)}, 3.2); M.boom(${toLift}); true`);
   await cap('At events', 'Everyone launches together', 'Scan the code on the big screen: a boarding call, then 3·2·1.', 'full');
   await until(() => { const r = round(); return r.phase === 'flying' && r.now - (r.endsAt - r.flightMs) > 2600; }, 15_000, 'liftoff');
-  await pause();
+  await toBlack();
   await until(() => { const r = round(); return r.phase === 'flying' && r.now - (r.endsAt - r.flightMs) > 40_000; }, 60_000, 'mid-flight');
-  await resume();
+  await fromBlack();
   await mark('flight');
   await say('flight', 0.2);
   await cap('Live on the big screen', 'Mission feed and best landings', 'Combos, legendary finds and landings light up as they happen.', 'full');
   await sleep(5800);
-  await pause();
-  await until(() => { const r = round(); return r.phase === 'ceremony' && r.now - (r.ceremonyEndsAt - 25_000) > 1200; }, 120_000, 'the podium');
-  await resume();
+  await toBlack();
+  await until(() => { const r = round(); return r.phase === 'ceremony' && r.now - (r.ceremonyEndsAt - 25_000) > 900; }, 120_000, 'the podium');
+  await fromBlack();
   await mark('podium');
   await say('podium', 0.3);
   await ev('M.chime(0.2)');
   await cap('Every round', 'A podium, then the next launch', 'Rounds run on their own. The host just switches them on.', 'full');
   await sleep(5800);
-  await pause();
+  await toBlack();
 
   // How it works, and where to play.
-  await ev(`D.capOff(); D.card(''); D.show('card'); true`);
-  await resume();
+  await ev(`D.capOff(); D.card(''); D.show('card'); D.unload('big'); true`);
+  await sleep(800);
+  await fromBlack();
   await ev('M.level(1)');
   await mark('tech');
   await sleep(300);

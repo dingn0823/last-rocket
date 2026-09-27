@@ -133,7 +133,7 @@ https://github.com/dingn0823/last-rocket
 
 ## Video demo link
 
-视频文件已录好：桌面「Last Rocket - DevpostLast Rocket to the Moon - demo.webm」（1 分 59 秒，带 AI 英文讲解）。
+视频文件已录好：桌面「Last Rocket - DevpostLast Rocket to the Moon - demo.webm」（2 分 04 秒，带 AI 扫描特写和 AI 英文讲解）。
 ⚠️ 上传到 YouTube 后把链接填在这里（上传时 Visibility 选 **Unlisted / 不公开**）。
 
 ## Image gallery（桌面「Last Rocket - Devpost\gallery」文件夹，按顺序上传，3:2 比例）
