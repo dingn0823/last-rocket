@@ -172,7 +172,8 @@ function burst(pid, kind) {
   if (!(kind in WORDS)) return;
   const fire = () => {
     const b = document.createElement('div');
-    b.className = `burst k-${kind}`;
+    // Near the top of the panel the word would be clipped: show it under the rocket instead.
+    b.className = `burst k-${kind}${Number(el.dataset.y) < 22 ? ' below' : ''}`;
     b.style.left = `${el.dataset.x}%`;
     b.style.top = `${el.dataset.y}%`;
     let html = `<div class="ring"></div><div class="word">${WORDS[kind]}</div>`;

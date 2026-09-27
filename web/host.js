@@ -3,6 +3,7 @@ import { escapeHtml } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
 let lastJoinUrl = '';
+let lastState = null;
 let eventMode = false;
 let roundPhase = 'off';
 let round = null;
@@ -70,18 +71,30 @@ async function refresh() {
   $('launchBtn').disabled = !(roundPhase === 'waiting' || roundPhase === 'boarding');
   $('endBtn').disabled = roundPhase !== 'flying';
   $('modeBtn').textContent = s.eventMode ? '↩ Back to free-text mode' : '👥 Switch to event mode (many players)';
-  $('runs').innerHTML = s.runs.length
-    ? s.runs.map((r) => `
+  lastState = s;
+  renderRuns();
+}
+
+/** By default only each real player's current game; simulator tests and earlier games are one click away. */
+function renderRuns() {
+  const s = lastState;
+  if (!s) return;
+  const all = $('showAll').checked;
+  const rows = all ? s.runs : s.runs.filter((r) => r.current && r.channel !== 'sim');
+  $('hiddenCount').textContent = all || s.runs.length === rows.length ? '' : `(${s.runs.length - rows.length} hidden)`;
+  $('runs').innerHTML = rows.length
+    ? rows.map((r) => `
       <tr class="${r.current ? '' : 'old'}">
         <td>${escapeHtml(r.nickname)} <span style="color:var(--muted)">${r.lang === 'zh' ? '中' : 'EN'}</span></td>
-        <td>${r.channel === 'imessage' ? '📱 iMessage' : '🖥 simulator'}</td>
+        <td>${r.channel === 'imessage' ? '📱 iMessage' : r.channel === 'bot' ? '🤖 bot' : '🖥 simulator'}</td>
         <td>${escapeHtml(stageLabel(r))}</td>
         <td>${r.res.fuel} · ${r.res.oxygen} · ${r.res.hull}</td>
         <td>${ago(r.updatedAt)}</td>
         <td><a class="open" href="${escapeHtml(r.bridge)}" target="_blank">Bridge</a></td>
       </tr>`).join('')
-    : '<tr><td colspan="6">No runs yet.</td></tr>';
+    : '<tr><td colspan="6">No players yet.</td></tr>';
 }
+$('showAll').onchange = renderRuns;
 
 $('modeBtn').onclick = async () => {
   $('modeBtn').disabled = true;
