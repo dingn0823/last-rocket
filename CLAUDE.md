@@ -22,7 +22,7 @@
 
 ## 常用命令
 - 脚手架（官方后台提供）：`bun create spectrum-project@latest <name> --projectId <id> --providers imessage --yes`，会自动生成带密钥的 .env。
-- 启动：`bun start`。回声测试：用已登记的手机给分配的号码发消息，应收到 `echo:` 开头的回复。
+- 脚手架自带的回声测试（最早用来验证 Photon 链路，现在的游戏不用）：用已登记的手机给分配的号码发消息，应收到 `echo:` 开头的回复。现在启动游戏用 `npm start` 或双击 `Start game.cmd`。
 - 真机 iMessage：`.env` 里有 `PROJECT_ID`/`PROJECT_SECRET` 时 `npm start` 会自动连上 Photon（日志出现 `[photon] connected`）；设 `PHOTON=0` 可关闭。查某个玩家的专属号码：`npx @photon-ai/cli spectrum users list --json`（需先 `npx @photon-ai/cli login`，项目 id 用环境变量 `PHOTON_PROJECT_ID`）。`node scripts/photon-probe.ts` 给最近的 iMessage 玩家发两条测试消息，验证主动推送。
 - 大屏汇总页：http://localhost:3000/screen （决赛投屏用；控制页有按钮）。全场玩家在地月航线上的位置、英文实时战报、最佳着陆榜、加入二维码和短网址。不显示照片；网页模拟器的局默认不上大屏（加 ?sim=1 才显示）；控制页 🧹 Clear big screen 让排行榜和战报从零开始。彩排：`node scripts/screen-demo.ts`（:3100，机器人玩家，临时数据）。
 - 自动场次（决赛用，控制页 🔁 开关或 .env `ROUNDS=auto`）：第一个人加入 → 30 秒登船 → 所有人同时发射 → 5 分钟飞行（中途加入直接开玩；.env `ROUND_MINUTES` 可改）→ 45 秒颁奖（前三名，按本场最好的着陆分）→ 自动开下一场，大屏只显示当前场次。代码在 `src/game/round.ts`，候机时玩家的局停在 phase `new`、`RunRecord.heldRound` 记报名场次。手机不发名次。
@@ -56,7 +56,7 @@
     - 测试保证中文局不出现英文、英文局不出现中文。改完跑 `npm test`；想通读文案用 `node scripts/sample-run.ts zh`（或 `en`）。
 
 ## 交互方式
-- 第 1 关和三次装备三选一：给编号选项（iMessage 投票或回复数字）。
+- 第 1 关和三次装备三选一：给编号选项，回复数字（原计划的 iMessage 投票没有用；收到投票回复也能识别）。
 - 第 2–5 关：自由回答加提示。剧情里自然提示几个可能的行动，不列编号；玩家自由打字，按架构规则第 4 条理解。第 2 关开头用一句剧情过渡（"Comms fully online. From here on, just tell me what to do."）。
 - 自由回答只能映射到内容配置里预设的行动（包括隐藏选项），不能让 AI 发明新行动。
 - 活动模式或检测到 AI 被限流时，自动切回编号选项。
@@ -65,7 +65,7 @@
 - 后端跑在团队笔记本上。其他人的电脑和手机通过 Cloudflare 临时隧道的公开 https 网址访问加入页和舰桥；校园 Wi-Fi 通常隔离设备，不能依赖局域网 IP。
 - 已验证（9/26）：Cloudflare 临时隧道会把 SSE 整段缓冲，网页一条都收不到（换 http2、关压缩、加填充都无效），普通请求正常。所以网页实时更新全部改用长轮询（`src/server/hub.ts`，`GET …/poll?after=<序号>`，最多挂起 25 秒），隧道里实测 0.2 秒送达。
 - 待确认：Photon 收消息是否不需要公开网址（回声测试时确认；后台有 Webhooks 设置）。
-- 照片处理（转 JPEG、生成装备卡）设并发上限，排队时全息扫描动画持续循环。
+- 照片处理（HEIC 转 JPEG）同时最多 2 张，排队时全息扫描动画持续循环。装备卡、战绩卡在 iMessage 里都是文字，不生成图片。
 - 演示时笔记本插电、关闭睡眠和锁屏；准备手机热点作为备用网络。
 
 ## Photon 已确认的事实
@@ -95,7 +95,7 @@
 - 玩家照片默认不投到大屏，只显示物品名和装备图。
 
 ## 目录与负责人（建议结构，调整后更新这里）
-- 接入与整合：`src/channel/`（Photon 收发、用户登记）、`src/server/`（加入页接口、SSE）、存档
+- 接入与整合：`src/channel/`（Photon 收发、用户登记）、`src/server/`（加入页接口、长轮询实时更新、隧道和短网址）、存档
 - 游戏逻辑：`src/engine/`（状态机、结算、装备规则、组合技、事件条件）
 - AI：`src/ai/`（识别、解析、叙述，含超时和兜底）
 - 前端视觉：`web/`（加入页、个人舰桥、大屏汇总、单人视图、全息效果）
@@ -110,7 +110,7 @@
 
 ## 当前进度
 - [x] Photon 项目已建好，Pro 已兑换（上限 100 人），iMessage 消息能送进项目
-- [x] 本地可玩 demo：引擎 + content JSON（12 改装件、12 强化、4 组合技、5 关事件、隐藏选项、3 结局）+ 网页 iMessage 模拟器 + 个人舰桥（SSE）
+- [x] 本地可玩 demo：引擎 + content JSON（12 改装件、12 强化、4 组合技、5 关事件、隐藏选项、3 结局）+ 网页 iMessage 模拟器 + 个人舰桥（最早用 SSE，9/26 改成长轮询）
 - [x] 中英双语（content/zh.json、content/ui.json）
 - [x] 接入 Photon：`src/channel/photon.ts`，真机 iPhone 完整玩通一局（中文）
 - [x] 接入 Gemini：照片识别、自由回答解析、结局叙述、超时和限流兜底都已实测
