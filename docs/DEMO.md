@@ -3,6 +3,14 @@
 所有链接都以控制页为准：**http://localhost:3000/host**（只能在跑服务器的笔记本上打开）。
 对外永远只说短网址：**dingn0823.github.io/moon**（服务器重启后约 20 秒自动指向新地址）。
 
+## 一分钟上手
+
+1. 笔记本插电，双击桌面 **「Last Rocket - 启动游戏」**。黑色窗口一直开着；浏览器会自动打开控制页。
+2. 等控制页的状态都变绿（iMessage connected、Public URL online），**再等 1–2 分钟**让短网址切换到新地址。
+3. 给别人的链接永远只有一个：**dingn0823.github.io/moon**（海报、幻灯片上都写这个）。
+4. 评委桌前：控制页点绿色的 **🧑‍⚖️ Open join page on this laptop**。
+5. 决赛投屏：控制页点 **👥 event mode**、**🔁 auto rounds**、**📺 Open big screen**，把大屏窗口拖到投影上按 F11。
+
 ## 演示前 30 分钟
 
 - [ ] 笔记本**必须插电**。插电时的"自动睡眠 / 屏幕关闭 / 合盖睡眠"已在 9/26 关掉（用电池时仍会 4 分钟睡眠）。赛后想改回原样：双击 `last-rocket\tools\restore-power-settings.cmd`。关掉系统更新提醒。
@@ -19,7 +27,7 @@
 
 ## 场合一：评委到桌前（周日 12:30–16:00）
 
-笔记本屏幕开着**加入页**（控制页二维码下面的链接，或短网址）。
+在控制页点绿色按钮 **🧑‍⚖️ Open join page on this laptop**，笔记本上就会打开加入页。每来一位新评委，就回到控制页再点一次。
 
 1. 开场白（英文）：*"Earth has hours left. You can bring one thing with you. What would it be?"*
 2. 请评委在笔记本上填昵称和**他 iPhone 的号码**。提醒他看输入框下方显示的号码，确认没打错。

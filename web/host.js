@@ -52,6 +52,7 @@ async function refresh() {
     $('qr').src = qr;
     $('qrBig').src = qr;
     $('joinUrl').textContent = s.joinUrl;
+    $('joinUrl').href = s.joinUrl;
     $('joinUrlBig').textContent = s.shortUrl ? s.shortUrl.replace(/^https?:\/\//, '') : s.joinUrl;
   }
   $('shortUrl').textContent = s.shortUrl ? `Short link (type this): ${s.shortUrl.replace(/^https?:\/\//, '')}` : '';
