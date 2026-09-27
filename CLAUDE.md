@@ -122,6 +122,7 @@
 - [x] Devpost 文案和 3:2 展示图（9/26 夜，桌面「Last Rocket - Devpost」）
 - [x] 演示视频自动录好（2:35，AI 扫描真实照片的特写 + AI 英文讲解，桌面「Last Rocket - Devpost」）
 - [x] 视频已公开发布到 YouTube：https://youtu.be/tg1oPfT087w
-- [ ] 填好 Devpost，周日 12:00 PM 前提交
+- [x] Devpost 全部填好，存为草稿（9/27 凌晨；名称、简介、About、14 个技术标签、2 个链接、7 张图带说明、视频；4 名队友已加入；Photon 赛道不用另外报名）
+- [ ] 在 Devpost Submit 页勾选条款并点 Submit project。提交页提醒写的是 10:00 AM 前（官方截止 12:00 PM），按 10:00 AM 前提交
 - [ ] 存档目前是 JSON 文件，需要时换 SQLite
 - [ ] 其余按 docs/SPEC.md 的时间线推进

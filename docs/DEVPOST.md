@@ -2,6 +2,10 @@
 
 提交页：https://devpost.com/submit-to/31137-hackwashu-fall-ai-build-challenge/manage/submissions/1197892/project-overview
 截止：**周日 9/27 12:00 PM（美中时间）**。截止前可以随时改；截止后通常不能再改，视频链接一定要在截止前填上。
+⚠️ 提交页（最后一步）上主办方的 "Final reminder" 写的是 **10:00 AM** 前提交（里面的决赛时间也和主页不一样，像是旧文案）。Devpost 系统和官方规则都是 12:00 PM，但为了保险，按 10:00 AM 前提交（也是团队内部截止）。
+
+**状态（9/27 凌晨）：** 以下所有内容已填进 Devpost 并存为草稿（3/4 步完成）。只差最后一步：在 Submit 页勾选条款（"I, and all of my team members, have read and agree…"），再点 **Submit project**。提交后截止前仍可修改。
+另外可选：每位队友登录后，在项目页右侧自己名字下的 "Describe your contribution" 写一句自己做了什么。
 
 官方要求（来自 https://hackwashu-fall-ai-2026.devpost.com/ ）：
 1. 能运行的 AI 项目：截图 + 在线演示或源代码仓库（二者至少一个，我们两个都有）。
@@ -155,9 +159,9 @@ Thumbnail（封面小图）用 `1-cover.png`。
 
 ## Team members
 
-⚠️ 在提交页的 team 区域用邮箱或 Devpost 用户名邀请队友，每个人要用自己的 Devpost 账号点接受。
+已完成：4 名队友都已在 Manage team 页的 "Current teammates" 里（已接受邀请）。
 
 ## Tracks / prizes
 
-Devpost 页面上只有一个主赛道。提交表里如果有 Photon 相关的勾选项或问题，就勾上 / 填 "Yes: the whole game is played by texting a Photon Spectrum agent over iMessage."
-⚠️ Photon Bonus Track 如果需要另外报名（Discord 或单独表格），要问一下主办方或 Photon 的人。
+Devpost 提交表里没有赛道勾选项，也没有额外问题。
+Photon Bonus Track 不需要另外报名：官方公告（9/25 "Bonus track from Photon"）写明，项目只要接入了 Spectrum，同一个 Devpost 提交就自动有资格拿 Photon 的奖。我们的 About 里已有 "Photon Bonus Track" 一节说明。
